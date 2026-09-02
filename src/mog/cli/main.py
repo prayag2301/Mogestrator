@@ -18,7 +18,7 @@ from rich.table import Table
 from mog import __version__
 from mog.graph.anchors import drift, span_hash
 from mog.graph.models import EdgeKind, NodeKind
-from mog.graph.store import Store
+from mog.graph.store import SECRET_LABEL, Store
 from mog.index.indexer import Indexer
 from mog.index.parsers.base import spec_for_path
 
@@ -44,6 +44,25 @@ index:
 DEFAULT_MOGIGNORE = "# Paths mog should not index (same syntax as .gitignore)\n*.min.js\n*.lock\n"
 
 
+def _ensure_gitignored(root: Path, entry: str = ".mog/") -> bool:
+    """Add ``.mog/`` to .gitignore. Returns True if it was written.
+
+    Printing a reminder is not a safe default: the index describes the whole
+    tree, and committing it publishes that description (ADR-0008).
+    """
+    ignore = root / ".gitignore"
+    lines = ignore.read_text(encoding="utf-8").splitlines() if ignore.exists() else []
+    if any(line.strip().rstrip("/") == entry.rstrip("/") for line in lines):
+        return False
+    prefix = "" if not lines or lines[-1] == "" else "\n"
+    with ignore.open("a", encoding="utf-8") as fh:
+        fh.write(
+            f"{prefix}# mogestrator index — describes the whole tree, keep it local\n"
+            f"{entry}\n"
+        )
+    return True
+
+
 def _root(explicit: Path | None = None) -> Path:
     """Nearest ancestor holding mogestrator.yaml or .mog/, else cwd."""
     if explicit:
@@ -53,6 +72,27 @@ def _root(explicit: Path | None = None) -> Path:
         if (candidate / "mogestrator.yaml").exists() or (candidate / ".mog").is_dir():
             return candidate
     return here
+
+
+def _allow_secret_content(root: Path) -> tuple[str, ...]:
+    """`index.allow_secret_content` from mogestrator.yaml, if present.
+
+    The only escape hatch for the ingest gate: per-pattern, opt-in, for the
+    fixtures that legitimately contain fake credentials. There is deliberately
+    no global off switch (ADR-0008).
+    """
+    cfg = root / "mogestrator.yaml"
+    if not cfg.exists():
+        return ()
+    try:
+        import yaml
+
+        data = yaml.safe_load(cfg.read_text(encoding="utf-8")) or {}
+        patterns = (data.get("index") or {}).get("allow_secret_content") or []
+        return tuple(str(p) for p in patterns)
+    except Exception as exc:
+        err.print(f"[yellow]ignoring mogestrator.yaml:[/] {exc}")
+        return ()
 
 
 def _open(root: Path, *, require_index: bool = True) -> Store:
@@ -103,7 +143,9 @@ def init(
     if not ignore.exists():
         ignore.write_text(DEFAULT_MOGIGNORE, encoding="utf-8")
         console.print("[green]created[/] .mogignore")
-    console.print("[green]created[/] .mog/  [dim](add to .gitignore)[/]")
+    console.print("[green]created[/] .mog/")
+    if _ensure_gitignored(root):
+        console.print("[green]added[/] .mog/ to .gitignore")
     console.print("\n[dim]next:[/] mog index")
 
 
@@ -116,8 +158,10 @@ def index(
     """Build or update the context graph. Incremental unless --full."""
     root = _root(directory)
     store = _open(root, require_index=False)
+    _ensure_gitignored(root)
     with console.status("indexing…") if not json_out else _null():
-        stats = Indexer(root, store).run(full=full)
+        indexer = Indexer(root, store, allow_secret_content=_allow_secret_content(root))
+        stats = indexer.run(full=full)
     counts = store.counts()
     if json_out:
         _emit(jsonlib.dumps({**stats.__dict__, "totals": counts}, default=str))
@@ -133,6 +177,11 @@ def index(
         )
         if stats.stale_marked:
             console.print(f"  [yellow]{stats.stale_marked} facts marked stale[/]")
+        if stats.files_gated:
+            console.print(
+                f"  [yellow]{stats.files_gated} files gated as secret[/] "
+                f"[dim](listed, never stored — mog status --secrets)[/]"
+            )
         if not store.vec.available:
             console.print(f"  [yellow]vector search unavailable[/] [dim]({store.vec.reason})[/]")
     store.close()
@@ -142,6 +191,7 @@ def index(
 def status(
     directory: Annotated[Path | None, typer.Option("--repo")] = None,
     json_out: Annotated[bool, typer.Option("--json")] = False,
+    secrets: Annotated[bool, typer.Option("--secrets", help="List gated files.")] = False,
 ) -> None:
     """Index size, freshness and capability report."""
     import time
@@ -149,6 +199,21 @@ def status(
     root = _root(directory)
     store = _open(root)
     counts = store.counts()
+    if secrets:
+        gated = store.find_labeled(SECRET_LABEL)
+        if json_out:
+            _emit(jsonlib.dumps({"gated": [n.path for n in gated]}))
+        elif not gated:
+            console.print("[green]no files gated[/]")
+        else:
+            console.print(
+                f"[yellow]{len(gated)} files gated as secret[/] "
+                f"[dim](content not stored)[/]"
+            )
+            for n in gated:
+                console.print(f"  {n.path}")
+        store.close()
+        return
     last = store.get_meta("last_indexed_at")
     age = time.time() - last if last else None
     payload = {
@@ -169,6 +234,8 @@ def status(
     table.add_row("edges", str(counts["edges"]))
     stale = counts.get("state:stale", 0)
     table.add_row("stale facts", f"[yellow]{stale}[/]" if stale else "0")
+    gated = counts.get("gated", 0)
+    table.add_row("gated as secret", f"[yellow]{gated}[/]" if gated else "0")
     table.add_row("last indexed", f"{age / 60:.1f} min ago" if age else "[yellow]never[/]")
     table.add_row(
         "vector search",

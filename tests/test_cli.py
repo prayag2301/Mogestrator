@@ -76,3 +76,20 @@ def test_map_lists_files(repo):
     r = runner.invoke(app, ["map", "--repo", str(repo)])
     assert r.exit_code == 0
     assert "auth.py" in r.stdout
+
+
+def test_init_writes_mog_to_gitignore(tmp_path):
+    """Printing a reminder was not a safe default (ADR-0008)."""
+    from mog.cli.main import app
+
+    result = CliRunner().invoke(app, ["init", str(tmp_path)])
+    assert result.exit_code == 0
+    assert ".mog/" in (tmp_path / ".gitignore").read_text()
+
+
+def test_init_does_not_duplicate_an_existing_gitignore_entry(tmp_path):
+    from mog.cli.main import app
+
+    (tmp_path / ".gitignore").write_text("__pycache__/\n.mog/\n")
+    CliRunner().invoke(app, ["init", str(tmp_path)])
+    assert (tmp_path / ".gitignore").read_text().count(".mog/") == 1

@@ -11,6 +11,10 @@ index:
   exclude: ["**/node_modules/**", "**/*.min.js", "**/vendor/**"]
   max_file_bytes: 400_000
   languages: [python, typescript, go, rust]
+  # Files whose content may be stored despite matching the ingest gate
+  # (ADR-0008) — fixtures holding deliberately fake credentials. Per-pattern
+  # and opt-in; there is no global off switch.
+  allow_secret_content: ["tests/fixtures/*.env"]
   git_history:
     co_change_window: 200        # commits mined for co_changed edges
     min_co_change: 3             # occurrences before an edge is created

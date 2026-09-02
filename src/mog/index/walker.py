@@ -82,8 +82,17 @@ def discover(
         if include != ("**",) and not any(fnmatch(rel, pat) for pat in include):
             continue
         abs_path = root / rel
+        # Ingest is confined to the tree: a symlink out of it would pull
+        # ~/.ssh or /etc into an index that is meant to describe this repo
+        # (ADR-0008). git lists symlinks like any other file, so both walk
+        # modes need this.
         try:
-            size = abs_path.stat().st_size
+            real = abs_path.resolve(strict=True)
+            real.relative_to(root)
+        except (OSError, ValueError, RuntimeError):
+            continue
+        try:
+            size = real.stat().st_size
         except OSError:
             continue
         if size == 0 or size > max_bytes or is_binary(abs_path):

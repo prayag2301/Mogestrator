@@ -18,6 +18,12 @@ from mog.graph.models import Anchor, Edge, EdgeKind, Node, NodeKind, State
 
 SCHEMA_VERSION = 1
 
+#: Nodes carrying this label hold no content anywhere in the store (ADR-0008).
+#: Duplicated from mog.index.sensitivity rather than imported: the storage layer
+#: must not depend on the indexer, and this invariant has to hold for every
+#: writer, including future ones.
+SECRET_LABEL = "secret"
+
 #: Symbol bodies are truncated in the full-text index. Long bodies add index
 #: weight without improving lookup — the graph, not FTS, is what finds the rest.
 FTS_CONTENT_CHARS = 1200
@@ -139,6 +145,8 @@ class Store:
     # ---- writes -------------------------------------------------------
 
     def upsert_nodes(self, nodes: Iterable[Node]) -> int:
+        nodes = list(nodes)
+        self._assert_no_secret_content(nodes)
         rows = [
             (
                 n.id, n.kind.value, n.name, n.state.value, n.content,
@@ -162,6 +170,20 @@ class Store:
         self._sync_fts(nodes)
         return len(rows)
 
+    @staticmethod
+    def _assert_no_secret_content(nodes: list[Node]) -> None:
+        """The one invariant that makes the ingest gate a guarantee.
+
+        Gating in the indexer is a policy; this is the enforcement. It fails
+        loudly so a future code path cannot quietly regress the property that
+        secret bytes never reach disk (ADR-0008).
+        """
+        for n in nodes:
+            if SECRET_LABEL in n.labels and (n.content or n.meta.get("start_byte") is not None):
+                raise ValueError(
+                    f"refusing to store content for secret-labelled node {n.display()}"
+                )
+
     def _sync_fts(self, nodes: Iterable[Node]) -> None:
         """Keep FTS in step with nodes, idempotently.
 
@@ -180,12 +202,16 @@ class Store:
                 f"SELECT rowid AS rid, id FROM nodes WHERE id IN ({marks})", ids
             )
         }
+        # A secret-labelled node is not searchable: FTS5 tokenizes and
+        # lowercases, so an indexed credential is a *queryable* credential.
+        # Its name still reaches search via the nodes table.
         payload = [
             (rowids[n.id], n.id, n.name, n.content[:FTS_CONTENT_CHARS])
             for n in node_list
-            if n.id in rowids
+            if n.id in rowids and SECRET_LABEL not in n.labels
         ]
-        self.db.executemany("DELETE FROM fts WHERE rowid=?", [(p[0],) for p in payload])
+        stale_rowids = [(rowids[n.id],) for n in node_list if n.id in rowids]
+        self.db.executemany("DELETE FROM fts WHERE rowid=?", stale_rowids)
         self.db.executemany(
             "INSERT INTO fts (rowid, node_id, name, content) VALUES (?,?,?,?)", payload
         )
@@ -319,6 +345,21 @@ class Store:
             for r in self.db.execute(sql, args)
         ]
 
+    def count_labeled(self, label: str) -> int:
+        return self.db.execute(
+            "SELECT count(*) c FROM nodes WHERE EXISTS "
+            "(SELECT 1 FROM json_each(nodes.labels) WHERE value=?)",
+            (label,),
+        ).fetchone()["c"]
+
+    def find_labeled(self, label: str, limit: int = 200) -> list[Node]:
+        rows = self.db.execute(
+            "SELECT * FROM nodes WHERE EXISTS "
+            "(SELECT 1 FROM json_each(nodes.labels) WHERE value=?) ORDER BY path LIMIT ?",
+            (label, limit),
+        ).fetchall()
+        return [_row_to_node(r) for r in rows]
+
     def counts(self) -> dict[str, int]:
         out = {
             "nodes": self.db.execute("SELECT count(*) c FROM nodes").fetchone()["c"],
@@ -329,6 +370,7 @@ class Store:
             out[f"kind:{r['kind']}"] = r["c"]
         for r in self.db.execute("SELECT state, count(*) c FROM nodes GROUP BY state"):
             out[f"state:{r['state']}"] = r["c"]
+        out["gated"] = self.count_labeled(SECRET_LABEL)
         return out
 
     def close(self) -> None:

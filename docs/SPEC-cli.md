@@ -17,6 +17,7 @@
 mog init                          scaffold mogestrator.yaml + .mog/ + .mogignore
 mog index [--full] [--watch]      build/update the graph; incremental by default
 mog status                        node/edge/vector counts, index age, drift rate
+mog status --secrets              list files gated at ingest (ADR-0008)
 mog verify [--fix]                re-check anchors; report stale facts
 mog map [--depth N]               print the L0 repo map
 ```

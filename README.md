@@ -21,12 +21,14 @@ mog verify     # re-check every anchor: how much of what it knows is now wrong?
 > **Status: M1 of 6 — the index works, retrieval does not.**
 >
 > **Built and tested:** the context graph, content-hash anchors with automatic
-> staleness detection, incremental indexing for Python/TypeScript/Go/Rust, and
-> the `init · index · status · verify · show · map` commands. 48 tests.
+> staleness detection, incremental indexing for Python/TypeScript/Go/Rust, the
+> ingest sensitivity gate (credentials are labelled and never stored), and the
+> `init · index · status · verify · show · map` commands. 75 tests.
 > Measured on a 525k-LOC repo: **11.2s** full index, **1.5s** incremental.
 >
 > **Not built:** everything downstream — retrieval (`search`, `impact`, `why`),
-> embeddings, the working set, the MCP server, and the entire policy plane.
+> embeddings, the working set, the MCP server, and the rest of the policy plane
+> (its ingest half — taint labels at the indexer — ships with M1, ADR-0008).
 > Those sections below describe the design, not shipped behaviour, and are
 > marked *(planned)*.
 >
@@ -153,6 +155,20 @@ anything. And there's a sharper problem specific to us: **the context graph is
 itself an injection vector.** Better memory without flow control is a
 better-targeted vulnerability.
 
+**Taint at ingest, not at egress** *(the one part that is built)*. Labels are
+assigned where provenance is known — the indexer. A file matching a credential
+shape keeps its node and loses its bytes: no preview, no full-text row, no byte
+offsets. Secret content never enters the store, so no downstream bug in
+retrieval, MCP or egress can leak it — a stronger property than any flow rule,
+and one that had to precede the store rather than follow it four milestones
+later ([ADR-0008](docs/adr/0008-ingest-sensitivity-gate.md)).
+
+```console
+$ mog index
+  4 files · 1 symbols · 0 tests · 1 edges
+  2 files gated as secret (listed, never stored — mog status --secrets)
+```
+
 **Layered, signed prompts.** `identity → capability → policy → context → task`.
 L0–L2 are digest-pinned and immutable at run time — retrieved content is
 *structurally incapable* of landing there. Not "the model refuses to be
@@ -255,7 +271,7 @@ Claude Code would gain `search_context`, `expand`, `impact`, `why`, `remember`,
 ```bash
 mog init                     # scaffold mogestrator.yaml, .mogignore, .mog/
 mog index [--full]           # build the graph; incremental by default
-mog status                   # counts, index age, drift, vector availability
+mog status [--secrets]       # counts, index age, drift, vectors; gated files
 mog verify [--strict]        # re-check every anchor; --strict exits 4 on drift
 mog show Store.upsert_nodes  # one symbol: anchor, callers, callees, tests
 mog map                      # the files with the most symbols
@@ -347,7 +363,7 @@ results go in `docs/results/` too.
 | [SPEC-cli.md](docs/SPEC-cli.md) · [SPEC-config.md](docs/SPEC-config.md) | `mog` commands · `mogestrator.yaml` |
 | [DISTRIBUTION.md](docs/DISTRIBUTION.md) | 16 install channels, build and signing |
 | [ROADMAP.md](docs/ROADMAP.md) | M1–M6 checklists — the work queue |
-| [adr/](docs/adr/) | Six decisions, each with the alternatives rejected |
+| [adr/](docs/adr/) | Eight decisions, each with the alternatives rejected |
 
 ## Requirements
 

@@ -16,6 +16,7 @@ from mog.graph.anchors import file_hash, span_hash
 from mog.graph.models import Anchor, Edge, EdgeKind, Node, NodeKind, State
 from mog.graph.store import Store
 from mog.index.parsers.base import LangSpec, Symbol, extract, spec_for_path
+from mog.index.sensitivity import SECRET, classify
 from mog.index.walker import DEFAULT_EXCLUDES, discover
 
 #: A callee name resolving to more than this many definitions carries almost no
@@ -41,6 +42,7 @@ class IndexStats:
     symbols: int = 0
     edges: int = 0
     stale_marked: int = 0
+    files_gated: int = 0
     languages: dict[str, int] = field(default_factory=dict)
     duration: float = 0.0
 
@@ -48,14 +50,18 @@ class IndexStats:
         return (
             f"{self.files_indexed} indexed, {self.files_skipped} unchanged, "
             f"{self.files_removed} removed · {self.symbols} symbols · {self.edges} edges"
+            + (f" · {self.files_gated} gated as secret" if self.files_gated else "")
         )
 
 
 class Indexer:
-    def __init__(self, root: Path, store: Store, *, exclude=DEFAULT_EXCLUDES) -> None:
+    def __init__(
+        self, root: Path, store: Store, *, exclude=DEFAULT_EXCLUDES, allow_secret_content=()
+    ) -> None:
         self.root = Path(root).resolve()
         self.store = store
         self.exclude = exclude
+        self.allow_secret_content = tuple(allow_secret_content)
         self._parsers: dict[str, object] = {}
 
     def _parser(self, lang: str):
@@ -92,9 +98,12 @@ class Indexer:
                     continue
 
                 self.store.delete_file_nodes(rel)
-                spec = spec_for_path(rel)
+                labels = classify(rel, source, self.allow_secret_content)
+                spec = None if SECRET in labels else spec_for_path(rel)
                 lang = spec.name if spec else None
-                nodes, edges, syms = self._index_file(rel, source, spec, fhash)
+                nodes, edges, syms = self._index_file(rel, source, spec, fhash, labels)
+                if SECRET in labels:
+                    stats.files_gated += 1
                 self.store.upsert_nodes(nodes)
                 self.store.upsert_edges(edges)
                 self.store.record_file(rel, fhash, lang, size, time.time())
@@ -136,22 +145,35 @@ class Indexer:
                     symbol_index.setdefault(node.anchor.symbol, []).append(node.id)
 
     def _index_file(
-        self, rel: str, source: bytes, spec: LangSpec | None, fhash: str
+        self,
+        rel: str,
+        source: bytes,
+        spec: LangSpec | None,
+        fhash: str,
+        labels: list[str] | None = None,
     ) -> tuple[list[Node], list[Edge], list[tuple[Node, Symbol]]]:
-        text = source.decode("utf-8", "replace")
+        labels = labels or classify(rel, source, self.allow_secret_content)
+        secret = SECRET in labels
+        text = "" if secret else source.decode("utf-8", "replace")
         file_node = Node(
             kind=NodeKind.FILE,
             name=rel.rsplit("/", 1)[-1],
+            # A gated file keeps its node — "config/prod.env exists and holds a
+            # secret" is the useful fact — and loses its bytes (ADR-0008).
             content=text[:PREVIEW_CHARS],
-            meta={"lines": text.count("\n") + 1},
+            labels=labels,
+            meta={"lines": source.count(b"\n") + 1},
             anchor=Anchor(path=rel, span_hash=fhash, file_hash=fhash),
         )
         nodes: list[Node] = [file_node]
         edges: list[Edge] = []
         syms: list[tuple[Node, Symbol]] = []
 
-        if spec is None:
-            return nodes, edges, syms  # degraded: file-level node + FTS only
+        if secret or spec is None:
+            # Gated: no parse, so no symbol bodies and no byte offsets that
+            # would let a reader fetch them from disk. Otherwise degraded:
+            # file-level node + FTS only.
+            return nodes, edges, syms
 
         try:
             tree = self._parser(spec.name).parse(source)
@@ -166,6 +188,7 @@ class Indexer:
                 kind=NodeKind.TEST if sym.is_test else NodeKind.SYMBOL,
                 name=sym.name,
                 content=body[:PREVIEW_CHARS],
+                labels=labels,
                 anchor=Anchor(
                     path=rel,
                     symbol=sym.qualname,
