@@ -10,14 +10,13 @@ import time
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from tree_sitter_language_pack import get_parser
-
 from mog.graph.anchors import file_hash, span_hash
 from mog.graph.models import Anchor, Edge, EdgeKind, Node, NodeKind, State
 from mog.graph.store import Store
 from mog.index.parsers.base import LangSpec, Symbol, extract, spec_for_path
+from mog.index.parsers.languages import get_parser
 from mog.index.sensitivity import SECRET, classify
-from mog.index.walker import DEFAULT_EXCLUDES, discover
+from mog.index.walker import DEFAULT_EXCLUDES, MAX_FILE_BYTES, discover
 
 #: A callee name resolving to more than this many definitions carries almost no
 #: information — `__init__`, `get`, `save` match hundreds of unrelated symbols,
@@ -56,11 +55,14 @@ class IndexStats:
 
 class Indexer:
     def __init__(
-        self, root: Path, store: Store, *, exclude=DEFAULT_EXCLUDES, allow_secret_content=()
+        self, root: Path, store: Store, *, exclude=DEFAULT_EXCLUDES, allow_secret_content=(),
+        include=("**",), max_bytes=MAX_FILE_BYTES,
     ) -> None:
         self.root = Path(root).resolve()
         self.store = store
         self.exclude = exclude
+        self.include = include
+        self.max_bytes = max_bytes
         self.allow_secret_content = tuple(allow_secret_content)
         self._parsers: dict[str, object] = {}
 
@@ -72,6 +74,10 @@ class Indexer:
     def run(self, *, full: bool = False) -> IndexStats:
         started = time.time()
         stats = IndexStats()
+        # Older indexes did not persist call sites; rebuild once on upgrade or
+        # when the ingest policy changes, even if file bytes are unchanged.
+        policy = {"format": 2, "allow_secret_content": list(self.allow_secret_content)}
+        refresh = self.store.get_meta("index_policy") != policy
         known = {} if full else self.store.known_files()
         seen: set[str] = set()
         # (qualname, path) -> node id, for cross-file call resolution.
@@ -84,7 +90,9 @@ class Indexer:
                 for path in list(self.store.known_files()):
                     self.store.forget_file(path)
 
-            for rel, abs_path, size in discover(self.root, exclude=self.exclude):
+            for rel, abs_path, size in discover(
+                self.root, include=self.include, exclude=self.exclude, max_bytes=self.max_bytes,
+            ):
                 stats.files_seen += 1
                 seen.add(rel)
                 try:
@@ -92,9 +100,8 @@ class Indexer:
                 except OSError:
                     continue
                 fhash = file_hash(source)
-                if known.get(rel) == fhash:
+                if not refresh and known.get(rel) == fhash:
                     stats.files_skipped += 1
-                    self._reindex_names(rel, symbol_index)
                     continue
 
                 self.store.delete_file_nodes(rel)
@@ -114,35 +121,31 @@ class Indexer:
                 if lang:
                     stats.languages[lang] = stats.languages.get(lang, 0) + 1
 
-                for node, sym in syms:
-                    symbol_index.setdefault(sym.name, []).append(node.id)
-                    symbol_index.setdefault(sym.qualname, []).append(node.id)
-                    for callee in sym.calls:
-                        pending_calls.append((node.id, callee))
-                    if sym.is_test:
-                        pending_tests.append((node.id, sym.name))
-
             for path in set(known) - seen:
                 self.store.forget_file(path)
                 stats.files_removed += 1
 
-            resolved = self._resolve_calls(pending_calls, symbol_index)
-            resolved += self._link_tests(pending_tests, symbol_index)
-            stats.edges += resolved
+            # Re-resolve all call sites when definitions change. Otherwise an
+            # edited callee loses incoming edges from unchanged callers/tests.
+            if stats.files_indexed or stats.files_removed or full:
+                self.store.db.execute("DELETE FROM edges WHERE kind IN ('calls','tested_by')")
+                for node in self.store.find_nodes(limit=-1):
+                    if node.kind not in (NodeKind.SYMBOL, NodeKind.TEST):
+                        continue
+                    for name in {node.name, node.meta.get("qualname", node.name)}:
+                        symbol_index.setdefault(name, []).append(node.id)
+                    pending_calls.extend((node.id, callee) for callee in node.meta.get("calls", []))
+                    if node.kind is NodeKind.TEST:
+                        pending_tests.append((node.id, node.name))
+                stats.edges += self._resolve_calls(pending_calls, symbol_index)
+                stats.edges += self._link_tests(pending_tests, symbol_index)
             stats.stale_marked = self._mark_stale_facts()
             self.store.set_meta("last_indexed_at", time.time())
             self.store.set_meta("root", str(self.root))
+            self.store.set_meta("index_policy", policy)
 
         stats.duration = time.time() - started
         return stats
-
-    def _reindex_names(self, rel: str, symbol_index: dict[str, list[str]]) -> None:
-        """Unchanged files still need their symbols visible to call resolution."""
-        for node in self.store.find_nodes(path=rel, limit=10_000):
-            if node.kind in (NodeKind.SYMBOL, NodeKind.TEST):
-                symbol_index.setdefault(node.name, []).append(node.id)
-                if node.anchor and node.anchor.symbol:
-                    symbol_index.setdefault(node.anchor.symbol, []).append(node.id)
 
     def _index_file(
         self,
@@ -198,6 +201,7 @@ class Indexer:
                 meta={
                     "symbol_kind": sym.kind,
                     "qualname": sym.qualname,
+                    "calls": sorted(set(sym.calls)),
                     "end_line": sym.node.end_point[0] + 1,
                     "signature": body.split("\n", 1)[0][:200],
                     # Byte offsets let L2 read the exact body from disk without

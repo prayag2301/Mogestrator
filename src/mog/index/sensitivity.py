@@ -23,11 +23,6 @@ from fnmatch import fnmatch
 SECRET = "secret"
 PRIVATE = "repo:private"
 
-#: Bytes of the file head examined by the content rules. A credential that only
-#: appears past 4 KB of a large file is out of scope for a path/content gate;
-#: catching it is the job of the M5 flow rules, not of this boundary.
-PROBE_BYTES = 4096
-
 #: Path shapes that are credential stores by convention. Matched against the
 #: repo-relative path and against its basename, so `deploy/prod.env` and
 #: `.env.production` both hit.
@@ -121,6 +116,6 @@ def classify(rel: str, source: bytes, allow: tuple[str, ...] | list[str] = ()) -
     """
     if any(fnmatch(rel, pat) for pat in allow):
         return [PRIVATE]
-    if path_is_secret(rel) or content_is_secret(source[:PROBE_BYTES]):
+    if path_is_secret(rel) or content_is_secret(source):
         return [SECRET]
     return [PRIVATE]

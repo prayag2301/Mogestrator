@@ -7,5 +7,5 @@ Retrieval (`search`, `impact`, `why`) lands in M2.
 Design docs: https://github.com/prayag2301/Orchestration/tree/main/docs
 """
 
-__version__ = "0.1.0.dev0"
+__version__ = "0.1.1"
 __all__ = ["__version__"]

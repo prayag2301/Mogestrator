@@ -1,16 +1,16 @@
 # Packaging skeleton for the `mog` CLI (package: mogestrator).
 #
 # M1 (in progress): the index/inspect CLI is implemented; retrieval is M2.
-# Version is a .dev0 pre-release — 0.0.1 on PyPI remains the name placeholder.
+# 0.1.1 is the first functional release; 0.0.1 reserved the package name.
 
 [build-system]
 requires = ["hatchling>=1.25"]
 build-backend = "hatchling.build"
 
 [project]
-name = "mogestrator"                # verify availability on PyPI before first publish
-version = "0.1.0.dev0"
-description = "A context substrate and policy gateway for coding agents: an anchored, self-invalidating code knowledge graph with eviction-and-recall memory, served over MCP."
+name = "mogestrator"
+version = "0.1.1"
+description = "An offline code knowledge graph with incremental indexing, content anchors, and drift detection for coding agents."
 readme = "README.md"
 requires-python = ">=3.11"
 license = { text = "MIT" }
@@ -33,8 +33,11 @@ dependencies = [
   "typer>=0.12",
   "rich>=13.7",
   "pyyaml>=6.0",
-  "tree-sitter>=0.23",
-  "tree-sitter-language-pack>=0.2",
+  "tree-sitter>=0.25,<0.27",
+  "tree-sitter-python>=0.23,<0.26",
+  "tree-sitter-typescript>=0.23,<0.24",
+  "tree-sitter-go>=0.23,<0.26",
+  "tree-sitter-rust>=0.23,<0.25",
   "sqlite-vec>=0.1.6",             # optional at runtime: probed, degrades to FTS
   "platformdirs>=4.2",
 ]
@@ -57,9 +60,9 @@ dev = [
 mog = "mog.cli.main:app"
 
 [project.urls]
-Homepage = "https://github.com/prayag2301/Mogestrator"
-Documentation = "https://github.com/prayag2301/Mogestrator/tree/main/docs"
-Issues = "https://github.com/prayag2301/Mogestrator/issues"
+Homepage = "https://github.com/prayag2301/Orchestration"
+Documentation = "https://github.com/prayag2301/Orchestration/tree/main/docs"
+Issues = "https://github.com/prayag2301/Orchestration/issues"
 
 # Third-party adapters register here (ARCHITECTURE §3).
 [project.entry-points."mog.parsers"]

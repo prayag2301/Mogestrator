@@ -25,7 +25,7 @@ Sequencing, not dates. Every milestone ends in a demo a stranger can reproduce.
 - [x] Ingest sensitivity gate: taint labels assigned at the indexer, symlink
       confinement, secret content never stored or indexed (ADR-0008) — moved
       forward from M5, because the store cannot precede its own labelling
-- [x] 75 tests covering anchors, store, parsers, indexing, the ingest gate and
+- [x] 86 tests covering anchors, store, parsers, indexing, the ingest gate and
       the CLI contract
 - [ ] `imports` edges (parsed and stored on the file node, not yet linked)
 - [ ] Git miner for `co_changed`
@@ -68,7 +68,10 @@ Sequencing, not dates. Every milestone ends in a demo a stranger can reproduce.
 - [ ] **Eval gate:** zero poisoning through, full exfiltration suite blocked
 
 ## M6 — Distribution
-- [ ] PyPI `mogestrator`, uv/pipx, Homebrew, binaries, Docker, npm wrapper
+- [x] Python wheel/sdist build, release version checks, and installed-package
+      CI on macOS/Linux/Windows; 0.1.1 prepared for publication
+- [ ] Verify functional 0.1.1 publication on PyPI (Trusted Publisher required)
+- [ ] Homebrew, binaries, Docker, npm wrapper
 - [ ] Signed releases, checksums, SBOM, install smoke matrix
 
 ## Deferred

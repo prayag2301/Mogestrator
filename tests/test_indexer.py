@@ -112,3 +112,51 @@ def test_ambiguous_call_names_are_dropped_not_linked(tmp_path):
     ).fetchone()["c"]
     assert calls == 0, f"__init__ fan-out should be dropped, got {calls} edges"
     assert ix.dropped_ambiguous >= 1
+
+
+def _relationships(store):
+    return {
+        (r["source"], r["target"], r["kind"], r["weight"], r["meta"])
+        for r in store.db.execute(
+            "SELECT s.path || '::' || s.name AS source, "
+            "d.path || '::' || d.name AS target, e.kind, e.weight, e.meta "
+            "FROM edges e JOIN nodes s ON s.id=e.src JOIN nodes d ON d.id=e.dst"
+        )
+    }
+
+
+def test_incremental_edges_match_full_rebuild_after_callee_edit(indexed):
+    repo, store, _ = indexed
+    path = repo / "src/auth.py"
+    path.write_text(path.read_text() + "\n# edit callee file only\n")
+    Indexer(repo, store).run()
+    incremental = _relationships(store)
+    Indexer(repo, store).run(full=True)
+    assert incremental == _relationships(store)
+
+
+def test_unchanged_callers_find_new_definitions_and_lose_removed_ones(tmp_path):
+    from mog.graph.store import Store
+
+    (tmp_path / "caller.py").write_text("def caller():\n    target()\n")
+    store = Store(tmp_path / ".mog/graph.db")
+    Indexer(tmp_path, store).run()
+    target = tmp_path / "target.py"
+    target.write_text("def target():\n    pass\n")
+    Indexer(tmp_path, store).run()
+    caller = store.find_by_qualname("caller")[0]
+    assert len(store.neighbors(caller.id, [EdgeKind.CALLS])) == 1
+    target.unlink()
+    Indexer(tmp_path, store).run()
+    assert store.neighbors(caller.id, [EdgeKind.CALLS]) == []
+    store.close()
+
+
+def test_unique_top_level_callee_is_not_ambiguous(indexed):
+    _, store, _ = indexed
+    row = store.db.execute(
+        "SELECT weight, json_extract(meta, '$.ambiguous') AS ambiguous FROM edges "
+        "WHERE kind='calls' AND json_extract(meta, '$.name')='load_key'"
+    ).fetchone()
+    assert row["ambiguous"] == 0
+    assert row["weight"] == 0.8

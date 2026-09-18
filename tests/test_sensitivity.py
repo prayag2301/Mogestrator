@@ -172,3 +172,22 @@ def test_store_refuses_byte_offsets_on_a_secret_node(store):
     )
     with pytest.raises(ValueError, match="refusing to store content"):
         store.upsert_nodes([node])
+
+
+def test_credentials_after_first_4kb_are_gated(tmp_path):
+    (tmp_path / "late.py").write_text("# padding\n" * 600 + f"key = '{AWS_KEY}'\n")
+    store, stats = _index(tmp_path)
+    assert stats.files_gated == 1
+    assert b"wJalrX" not in _db_bytes(tmp_path)
+    store.close()
+
+
+def test_removing_allowlist_reclassifies_unchanged_files(tmp_path):
+    (tmp_path / "fixture.env").write_text(AWS_KEY)
+    store, _ = _index(tmp_path, allow_secret_content=("fixture.env",))
+    assert store.count_labeled(SECRET_LABEL) == 0
+    stats = Indexer(tmp_path, store).run()
+    assert stats.files_indexed == 1
+    assert store.count_labeled(SECRET_LABEL) == 1
+    assert store.search_text("AWS_SECRET_ACCESS_KEY") == []
+    store.close()

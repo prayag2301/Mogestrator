@@ -1,7 +1,7 @@
 # Contributing
 
-> The project is in **M0 (planning)**. No product code exists yet, and that is
-> deliberate — read the plan before writing any.
+> The project is in **M1**: indexing and inspection work; retrieval and agent
+> integration are still planned. Read the roadmap for the current scope.
 
 ## Read first
 
@@ -33,14 +33,16 @@ box, open an issue naming it, keep the PR scoped to it.
 - **Tests with behaviour.** Parsers and anchors get unit tests; retrieval gets
   eval-suite coverage; policy gets adversarial tests, not happy-path ones.
 
-## Dev setup (once M1 lands)
+## Dev setup
 
 ```bash
-git clone https://github.com/prayag2301/Mogestrator.git
-cd Mogestrator
+git clone https://github.com/prayag2301/Orchestration.git
+cd Orchestration
 uv venv && source .venv/bin/activate
-pip install -r requirements.txt
-ruff check . && mypy src && pytest
+uv pip install -e . pytest ruff
+ruff check src tests scripts
+pytest
+python scripts/smoke.py
 ```
 
 ## Commits and PRs

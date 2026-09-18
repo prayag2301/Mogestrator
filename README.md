@@ -23,8 +23,9 @@ mog verify     # re-check every anchor: how much of what it knows is now wrong?
 > **Built and tested:** the context graph, content-hash anchors with automatic
 > staleness detection, incremental indexing for Python/TypeScript/Go/Rust, the
 > ingest sensitivity gate (credentials are labelled and never stored), and the
-> `init · index · status · verify · show · map` commands. 75 tests.
-> Measured on a 525k-LOC repo: **11.2s** full index, **1.5s** incremental.
+> `init · index · status · verify · show · map` commands. 86 tests.
+> Measured on a 525k-LOC repo: **11.2s** full index, **1.5s** incremental (historical benchmark, before the
+> 0.1.1 correctness fixes; not remeasured for this release).
 >
 > **Not built:** everything downstream — retrieval (`search`, `impact`, `why`),
 > embeddings, the working set, the MCP server, and the rest of the policy plane
@@ -210,7 +211,7 @@ Full threat model (T1–T6) and specification: [SPEC-policy.md](docs/SPEC-policy
 
 ## Installation
 
-### Today: from source
+### From source
 
 ```bash
 git clone https://github.com/prayag2301/Orchestration.git && cd Orchestration
@@ -219,28 +220,35 @@ uv pip install -e .
 mog --version
 ```
 
-Requires Python 3.11+. `pip install mogestrator` currently gets **0.0.1, a name
-placeholder that does nothing** — the working code is not released yet.
+Requires Python 3.11+. Version **0.0.1** is a name-only placeholder; the
+functional indexing package starts at **0.1.1**. Check
+[PyPI](https://pypi.org/project/mogestrator/) for published versions. Once 0.1.1
+is published, install it with an explicit minimum so an unavailable release
+fails clearly instead of installing the placeholder:
+
+```bash
+pip install "mogestrator>=0.1.1"
+# or, in an isolated tool environment:
+uv tool install "mogestrator>=0.1.1"
+# run without a persistent installation:
+uvx --from "mogestrator>=0.1.1" mog index
+```
+
+The release pipeline tests macOS, Linux, and Windows before publishing. The
+four supported grammar wheels are installed with the package; indexing does
+not download parsers at runtime.
 
 > On macOS, the *system* Python (`/usr/bin/python3`) is built without SQLite
 > extension support, so `sqlite-vec` cannot load there. `mog` detects this and
 > falls back to full-text search; `mog status` tells you which mode you are in.
 > Use a uv/homebrew/python.org interpreter to get vector support.
 
-### Planned: every other channel *(M6)*
+### Planned: additional channels *(M6)*
 
 Full channel matrix and build/signing process: [DISTRIBUTION.md](docs/DISTRIBUTION.md).
 **None of the commands below work yet.**
 
 ```bash
-# zero install — recommended first contact
-uvx mogestrator index
-
-# install as a tool
-uv tool install mogestrator
-pipx install mogestrator
-pip install mogestrator
-
 # no Python opinion
 brew install prayag2301/tap/mog
 curl -fsSL https://get.mogestrator.dev | sh      # signed binary, checksum-verified
@@ -280,6 +288,9 @@ mog map                      # the files with the most symbols
 Every command takes `--repo PATH`; `index`, `status` and `verify` take `--json`
 for scripting. Exit codes are a contract — see [SPEC-cli.md](docs/SPEC-cli.md).
 
+`verify` checks file, symbol, test, and stored fact anchors. A missing or
+changed file can therefore report drift even when its symbol bodies match.
+
 `mog verify` is the one worth trying first. It answers a question nothing else
 does: *how much of what the index believes is no longer true?*
 
@@ -315,7 +326,9 @@ humans — the consumer is an agent.
 
 ## Does it actually work?
 
-**Speed: measured.** On django/django (4,989 files, 44.6 MB of source, ~525k LOC),
+**Speed: measured on the initial M1 implementation.** These figures have not
+been remeasured after 0.1.1 changed incremental edge resolution and credential
+scanning. On django/django (4,989 files, 44.6 MB of source, ~525k LOC),
 Apple Silicon laptop:
 
 | | Target | Measured | |

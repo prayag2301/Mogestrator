@@ -1,6 +1,12 @@
 # Spec: `mogestrator.yaml`
 
-> Status: **Draft v1**. Committed to the repo. Secrets are declared, never stored.
+> Status: **Draft v1**. M1 implements `version: 1` and `index.include`,
+> `index.exclude`, `index.max_file_bytes`, and `index.allow_secret_content`.
+> Invalid values or unsupported index keys exit 3 before modifying the index.
+> Custom exclusions extend the built-in runtime/build exclusions. Changes to
+> the allowlist reclassify unchanged files on the next index.
+> Other sections, precedence layers, and validation rules below are planned;
+> currently only `mogestrator.yaml` is loaded.
 
 ```yaml
 version: 1
@@ -73,7 +79,7 @@ serve:
 built-in defaults → `mogestrator.yaml` → `mogestrator.local.yaml` (git-ignored)
 → `MOG_*` env vars → CLI flags.
 
-## Validation (M1)
+## Planned validation
 1. `version` must be `1`.
 2. `embeddings.dim` must match the stored vectors, or the command fails with a
    `mog reindex --embeddings` hint. Mixed-model vector spaces are never queried.

@@ -40,7 +40,7 @@ storage layer enforce it.
 1. **Ingest is confined to the tree.** `discover()` resolves each path and skips
    anything landing outside the root. Both walk modes.
 2. **Every file is classified** (`mog.index.sensitivity`) into `secret` or
-   `repo:private` from its path shape and the first 4 KB of its bytes. Strong
+   `repo:private` from its path shape and all of its bytes (up to the configured file-size limit). Strong
    markers (PEM headers, `AKIA…`, `ghp_…`, `xoxb-…`) decide on their own; the
    generic `KEY = value` shape additionally requires the value to look random
    (Shannon entropy ≥ 3.9 bits/char, placeholders rejected), because a false
@@ -97,9 +97,12 @@ it.** It costs one check at one boundary.
 − False positives cost content: a gated file is a file the agent cannot read
   through mog. `mog status --secrets` exists so this is visible rather than
   mysterious, and the allowlist so it is fixable.
-− The classifier is a heuristic and will miss things — a credential past 4 KB, a
-  low-entropy password, a format nobody has seen. It raises the floor; it is not
+− The classifier is a heuristic and will miss things — a low-entropy password, a format nobody has seen. It raises the floor; it is not
   a proof.
+− Removing an allowlist entry removes matching content from active nodes and
+  search results on the next index. This does not securely erase historical
+  bytes from SQLite pages, WAL files, or backups created while explicitly
+  allowing that content.
 − Two rule sets now describe sensitive paths (`.mogignore` excludes, sensitivity
   patterns). They answer different questions — *don't index this* versus *index
   this without its bytes* — but the overlap will invite confusion.

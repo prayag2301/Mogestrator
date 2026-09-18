@@ -222,7 +222,7 @@ class Store:
             return 0
         self.db.executemany(
             "INSERT INTO edges (src,dst,kind,weight,meta) VALUES (?,?,?,?,?) "
-            "ON CONFLICT(src,dst,kind) DO UPDATE SET weight=excluded.weight",
+            "ON CONFLICT(src,dst,kind) DO UPDATE SET weight=excluded.weight, meta=excluded.meta",
             rows,
         )
         return len(rows)
