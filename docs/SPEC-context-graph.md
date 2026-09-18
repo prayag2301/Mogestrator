@@ -7,6 +7,16 @@
 > [ADR-0003](./adr/0003-content-anchors-and-staleness.md),
 > [ADR-0004](./adr/0004-eviction-with-recall.md).
 
+## Implemented subset in 0.2.0a1
+
+Experimental exact/FTS plus optional local semantic retrieval, bounded graph
+expansion, rank fusion, conservative budget packing, current-source L0–L3 views,
+impact/neighbors, explicit memories, pins, and context handles are implemented.
+MCP supports stdio and loopback HTTP with optional polling. See ADR-0009 for
+limits: vector ranking is an exact scan; no L3 blame/diffs, automatic eviction,
+rename continuity, or completed M2 quality benchmark. This draft continues to
+describe the target design beyond the implemented subset.
+
 ---
 
 ## 1. Node types

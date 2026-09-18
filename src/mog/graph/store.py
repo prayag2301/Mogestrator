@@ -16,7 +16,7 @@ from typing import Any
 
 from mog.graph.models import Anchor, Edge, EdgeKind, Node, NodeKind, State
 
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
 
 #: Nodes carrying this label hold no content anywhere in the store (ADR-0008).
 #: Duplicated from mog.index.sensitivity rather than imported: the storage layer
@@ -75,6 +75,17 @@ CREATE VIRTUAL TABLE IF NOT EXISTS fts USING fts5(
 CREATE TABLE IF NOT EXISTS meta (key TEXT PRIMARY KEY, value TEXT NOT NULL);
 """
 
+_EMBEDDINGS_SCHEMA = """
+CREATE TABLE IF NOT EXISTS embedding_cache (
+    model TEXT NOT NULL, digest TEXT NOT NULL, dim INTEGER NOT NULL, vector BLOB NOT NULL,
+    PRIMARY KEY (model, digest)
+);
+CREATE TABLE IF NOT EXISTS node_embeddings (
+    node_id TEXT NOT NULL, model TEXT NOT NULL, digest TEXT NOT NULL,
+    PRIMARY KEY (node_id, model)
+);
+"""
+
 
 class VectorSupport:
     """Whether this runtime can load sqlite-vec, and why not if it cannot."""
@@ -116,6 +127,7 @@ class Store:
         self.db.execute("PRAGMA journal_mode=WAL")
         self.db.execute("PRAGMA foreign_keys=ON")
         self.db.execute("PRAGMA synchronous=NORMAL")
+        self.db.execute("PRAGMA busy_timeout=5000")
         self.vec = _try_load_vec(self.db)
         if not read_only:
             self._migrate()
@@ -124,12 +136,14 @@ class Store:
         current = self.db.execute("PRAGMA user_version").fetchone()[0]
         if current == 0:
             self.db.executescript(_SCHEMA)
-            self.db.execute(f"PRAGMA user_version={SCHEMA_VERSION}")
         elif current > SCHEMA_VERSION:
             raise RuntimeError(
                 f"database schema v{current} is newer than this build (v{SCHEMA_VERSION}); "
                 "upgrade mogestrator"
             )
+        if current < 2:
+            self.db.executescript(_EMBEDDINGS_SCHEMA)
+            self.db.execute(f"PRAGMA user_version={SCHEMA_VERSION}")
 
     @contextmanager
     def transaction(self) -> Iterator[sqlite3.Connection]:
@@ -149,10 +163,18 @@ class Store:
         self._assert_no_secret_content(nodes)
         rows = [
             (
-                n.id, n.kind.value, n.name, n.state.value, n.content,
-                json.dumps(n.labels), json.dumps(n.anchor.to_dict()) if n.anchor else None,
-                json.dumps(n.meta), n.path, n.anchor.span_hash if n.anchor else None,
-                n.created_at, n.updated_at,
+                n.id,
+                n.kind.value,
+                n.name,
+                n.state.value,
+                n.content,
+                json.dumps(n.labels),
+                json.dumps(n.anchor.to_dict()) if n.anchor else None,
+                json.dumps(n.meta),
+                n.path,
+                n.anchor.span_hash if n.anchor else None,
+                n.created_at,
+                n.updated_at,
             )
             for n in nodes
         ]
@@ -206,7 +228,12 @@ class Store:
         # lowercases, so an indexed credential is a *queryable* credential.
         # Its name still reaches search via the nodes table.
         payload = [
-            (rowids[n.id], n.id, n.name, n.content[:FTS_CONTENT_CHARS])
+            (
+                rowids[n.id],
+                n.id,
+                n.name,
+                n.content[:FTS_CONTENT_CHARS] if n.kind.is_structural else n.content,
+            )
             for n in node_list
             if n.id in rowids and SECRET_LABEL not in n.labels
         ]
@@ -245,6 +272,7 @@ class Store:
         self.db.execute(f"DELETE FROM edges WHERE src IN ({marks}) OR dst IN ({marks})", ids * 2)
         self.db.executemany("DELETE FROM fts WHERE rowid=?", [(r["rid"],) for r in rows])
         self.db.execute(f"DELETE FROM nodes WHERE id IN ({marks})", ids)
+        self.db.execute(f"DELETE FROM node_embeddings WHERE node_id IN ({marks})", ids)
         return len(ids)
 
     def record_file(
@@ -328,7 +356,12 @@ class Store:
         return [(_row_to_node(r), -float(r["score"])) for r in rows]
 
     def neighbors(
-        self, node_id: str, kinds: Iterable[EdgeKind] | None = None, *, reverse: bool = False
+        self,
+        node_id: str,
+        kinds: Iterable[EdgeKind] | None = None,
+        *,
+        reverse: bool = False,
+        limit: int = -1,
     ) -> list[tuple[Node, EdgeKind, float]]:
         col, other = ("dst", "src") if reverse else ("src", "dst")
         sql = (
@@ -340,9 +373,10 @@ class Store:
             ks = [k.value for k in kinds]
             sql += f" AND e.kind IN ({','.join('?' * len(ks))})"
             args += ks
+        sql += " ORDER BY e.weight DESC, n.id LIMIT ?"
+        args.append(limit)
         return [
-            (_row_to_node(r), EdgeKind(r["ek"]), float(r["ew"]))
-            for r in self.db.execute(sql, args)
+            (_row_to_node(r), EdgeKind(r["ek"]), float(r["ew"])) for r in self.db.execute(sql, args)
         ]
 
     def count_labeled(self, label: str) -> int:

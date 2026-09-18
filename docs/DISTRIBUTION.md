@@ -1,6 +1,6 @@
 # Distribution & installation channels
 
-> Status: Python packaging and release CI implemented for **0.1.1**. Other
+> Status: **0.1.1** is published; **0.2.0a1** adds experimental retrieval/MCP. Other
 > channels remain planned for **M6**.
 >
 > Principle: *adoption dies at the install step*. A developer must be able to
@@ -72,7 +72,8 @@ The old `v0.1.0` release points to placeholder code and failed with
 `invalid-publisher`; it must not be retried as a functional release. Use the new
 `v0.1.1` tag on the verified main commit. Do not move the old tag.
 
-After merge, create a GitHub release for the new version. Watch the Release
+After merge, create a GitHub release for the new version. Mark alpha versions
+such as `0.2.0a1` as prereleases; stable installs should continue to select 0.1.1. Watch the Release
 workflow, then verify the version on PyPI and run `scripts/smoke.py` using a
 fresh environment installed from PyPI. A GitHub release alone does not prove
 that publishing succeeded. If OIDC fails, correct the matching publisher in

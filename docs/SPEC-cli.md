@@ -2,14 +2,19 @@
 
 > Status: **Draft v1**. Package: `mogestrator` · binary: `mog`.
 
-## Implemented in 0.1.1
+## Implemented in 0.2.0a1
 
 `init`, `index`, `status`, `verify`, `show`, and `map` are available. All except
 `init` take `--repo`; `index`, `status`, and `verify` take `--json`. `index`
 supports `--full`; `verify --strict` exits 4 on drift. Verification covers file,
 symbol, test, and episodic anchors, and never follows a path outside the repo.
 `show path::symbol` requires the path to match. Use `mog COMMAND --help` for
-the supported options. The remaining commands and flags below are a design.
+the supported options. Experimental `search`, `expand`, `impact`, `neighbors`,
+`why`, `remember`, `recall`, `pin`, `unpin`, `embed`, and `serve` are also available.
+Retrieval takes `--budget` and `--json`; search supports `--semantic`, `--zoom`,
+`--kind`, and `--explain`. `serve --transport http` binds to loopback, and
+`--allow-memory-writes` enables agent-origin memory and context-handle writes.
+Unlisted commands and flags below remain a design.
 
 ## Global flags
 ```

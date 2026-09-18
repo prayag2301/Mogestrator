@@ -59,3 +59,12 @@ cannot accidentally author a benchmark we are guaranteed to pass.
   exfiltration suite is fully blocked.
 
 Results, including negative ones, are published in `docs/results/`.
+
+## Implemented smoke harness (0.2.0a1)
+
+`scripts/evaluate_retrieval.py` accepts a repository and JSON query/expected-location
+cases, indexes it, and reports recall@5, latency, and conservative context bytes.
+The authored cases in `tests/fixtures/retrieval_cases.json` are smoke tests only;
+`docs/results/retrieval-smoke-0.2.0a1.json` includes their failures as well as
+successes. No claim of passing B0/B1 or the M2 gate follows from these results.
+The prerelease exposes the implementation for evaluation while M2 remains open.

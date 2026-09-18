@@ -1,0 +1,10 @@
+{
+  "cases": [
+    {"query": "span_hash", "expected": ["src/mog/graph/anchors.py::span_hash"]},
+    {"query": "Store.upsert_nodes", "expected": ["src/mog/graph/store.py::Store.upsert_nodes"]},
+    {"query": "classify", "expected": ["src/mog/index/sensitivity.py::classify"]},
+    {"query": "read current source symbol body", "expected": ["src/mog/retrieve/render.py::SourceView.render"]},
+    {"query": "record episodic memory", "expected": ["src/mog/memory/ledger.py::Ledger.remember"]},
+    {"query": "reverse callers affected tests", "expected": ["src/mog/retrieve/engine.py::Retriever.impact"]}
+  ]
+}

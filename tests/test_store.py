@@ -71,7 +71,7 @@ def test_set_state_marks_stale(store):
 
 
 def test_schema_version_recorded(store):
-    assert store.db.execute("PRAGMA user_version").fetchone()[0] == 1
+    assert store.db.execute("PRAGMA user_version").fetchone()[0] == 2
 
 
 def test_fts_does_not_duplicate_on_reupsert(store):

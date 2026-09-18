@@ -1,7 +1,7 @@
 # Contributing
 
-> The project is in **M1**: indexing and inspection work; retrieval and agent
-> integration are still planned. Read the roadmap for the current scope.
+> The project is in **M1**: indexing and inspection work; experimental retrieval and MCP
+> integration are available; the M2 evidence gate remains open. Read the roadmap for the current scope.
 
 ## Read first
 
@@ -39,7 +39,7 @@ box, open an issue naming it, keep the PR scoped to it.
 git clone https://github.com/prayag2301/Orchestration.git
 cd Orchestration
 uv venv && source .venv/bin/activate
-uv pip install -e . pytest ruff
+uv pip install -e ".[mcp]" pytest pytest-asyncio ruff
 ruff check src tests scripts
 pytest
 python scripts/smoke.py
