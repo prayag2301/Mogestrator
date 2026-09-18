@@ -1,0 +1,116 @@
+{
+  "scope": "Authored localization smoke cases; not M2 acceptance or B0/B1 comparison",
+  "repository_commit": "4bb238fe63cb18a668fc0bc0feebf6beb4709bc6",
+  "working_tree_dirty": true,
+  "recall_at_5": 0.6666666666666666,
+  "median_latency_ms": 182.97,
+  "embedding_setup": {
+    "model": "BAAI/bge-small-en-v1.5",
+    "embedded": 6,
+    "cached": 311
+  },
+  "cases": [
+    {
+      "query": "span_hash",
+      "expected": [
+        "src/mog/graph/anchors.py::span_hash"
+      ],
+      "top5": [
+        "src/mog/graph/anchors.py::span_hash",
+        "src/mog/graph/anchors.py::span_hash_text",
+        "src/mog/graph/anchors.py::drift",
+        "tests/test_anchors.py::test_edit_elsewhere_in_file_does_not_change_span_hash",
+        "tests/test_anchors.py::test_comment_edits_do_not_change_hash"
+      ],
+      "recall_at_5": 1.0,
+      "latency_ms": 137.18,
+      "context_bytes": 15988,
+      "mode": "semantic+fts+graph"
+    },
+    {
+      "query": "Store.upsert_nodes",
+      "expected": [
+        "src/mog/graph/store.py::Store.upsert_nodes"
+      ],
+      "top5": [
+        "src/mog/graph/store.py::Store.upsert_nodes",
+        "tests/test_store.py::test_upsert_is_idempotent",
+        "tests/test_store.py::test_fts_does_not_duplicate_on_reupsert",
+        "tests/test_store.py::test_edges_deduplicate_on_conflict",
+        "tests/test_store.py::test_set_state_marks_stale"
+      ],
+      "recall_at_5": 1.0,
+      "latency_ms": 215.13,
+      "context_bytes": 15487,
+      "mode": "semantic+fts+graph"
+    },
+    {
+      "query": "classify",
+      "expected": [
+        "src/mog/index/sensitivity.py::classify"
+      ],
+      "top5": [
+        "src/mog/index/sensitivity.py::classify",
+        "tests/test_sensitivity.py::test_credential_paths_are_gated",
+        "src/mog/index/indexer.py::Indexer._index_file",
+        "tests/test_sensitivity.py::test_credential_content_is_gated_whatever_the_path",
+        "tests/test_sensitivity.py::test_allowlist_is_per_pattern"
+      ],
+      "recall_at_5": 1.0,
+      "latency_ms": 174.88,
+      "context_bytes": 15760,
+      "mode": "semantic+fts+graph"
+    },
+    {
+      "query": "read current source symbol body",
+      "expected": [
+        "src/mog/retrieve/render.py::SourceView.render"
+      ],
+      "top5": [
+        "src/mog/retrieve/render.py::SourceView.state",
+        "src/mog/retrieve/render.py::SourceView.snapshot",
+        "tests/test_sensitivity.py::_db_bytes",
+        "src/mog/graph/anchors.py::file_hash",
+        "src/mog/index/parsers/base.py::extract"
+      ],
+      "recall_at_5": 0.0,
+      "latency_ms": 268.39,
+      "context_bytes": 15846,
+      "mode": "semantic+fts+graph"
+    },
+    {
+      "query": "record episodic memory",
+      "expected": [
+        "src/mog/memory/ledger.py::Ledger.remember"
+      ],
+      "top5": [
+        "src/mog/cli/main.py::remember",
+        "src/mog/serve/mcp.py::create_server.remember",
+        "tests/test_store.py::test_delete_file_nodes_spares_episodic_memory",
+        "src/mog/memory/ledger.py",
+        "src/mog/memory/ledger.py::Ledger.remember"
+      ],
+      "recall_at_5": 1.0,
+      "latency_ms": 177.62,
+      "context_bytes": 15988,
+      "mode": "semantic+fts+graph"
+    },
+    {
+      "query": "reverse callers affected tests",
+      "expected": [
+        "src/mog/retrieve/engine.py::Retriever.impact"
+      ],
+      "top5": [
+        "src/mog/cli/main.py::impact",
+        "src/mog/serve/mcp.py::create_server.impact",
+        "tests/test_indexer.py::test_unchanged_callers_find_new_definitions_and_lose_removed_ones",
+        "tests/test_cli.py::test_verify_includes_tests_and_non_code_files",
+        "src/mog/serve/mcp.py::create_server.neighbors"
+      ],
+      "recall_at_5": 0.0,
+      "latency_ms": 188.32,
+      "context_bytes": 15850,
+      "mode": "semantic+fts+graph"
+    }
+  ]
+}

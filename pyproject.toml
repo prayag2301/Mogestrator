@@ -1,7 +1,6 @@
 # Packaging skeleton for the `mog` CLI (package: mogestrator).
 #
-# M1 (in progress): the index/inspect CLI is implemented; retrieval is M2.
-# 0.1.1 is the first functional release; 0.0.1 reserved the package name.
+# Retrieval and MCP are experimental until the M2 acceptance benchmark passes.
 
 [build-system]
 requires = ["hatchling>=1.25"]
@@ -9,7 +8,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "mogestrator"
-version = "0.1.1"
+version = "0.2.0a1"
 description = "An offline code knowledge graph with incremental indexing, content anchors, and drift detection for coding agents."
 readme = "README.md"
 requires-python = ">=3.11"
@@ -27,8 +26,8 @@ classifiers = [
   "Topic :: Text Processing :: Indexing",
 ]
 
-# Base install must work offline (ADR-0005). fastembed is deliberately NOT here
-# yet: embeddings land in M2 (Q1 open), and it pulls ~300MB of ONNX runtime.
+# Base indexing and lexical retrieval work offline (ADR-0005).
+# Semantic retrieval is opt-in through the embeddings extra.
 dependencies = [
   "typer>=0.12",
   "rich>=13.7",
@@ -43,10 +42,11 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-mcp = ["mcp>=1.2"]
+mcp = ["mcp>=1.30,<2"]
+embeddings = ["fastembed>=0.7,<1"]
 gateway = ["fastapi>=0.115", "uvicorn>=0.30", "cryptography>=43.0"]
 api-embeddings = ["anthropic>=0.40", "openai>=1.40"]
-all = ["mogestrator[mcp,gateway,api-embeddings]"]
+all = ["mogestrator[mcp,embeddings,gateway,api-embeddings]"]
 dev = [
   "pytest>=8.2",
   "pytest-asyncio>=0.23",

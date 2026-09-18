@@ -28,7 +28,7 @@ jobs:
       - name: Install package and test tools
         run: |
           uv venv
-          uv pip install . pytest ruff
+          uv pip install ".[mcp]" pytest pytest-asyncio ruff
       - name: Lint and test installed package
         run: |
           uv run --no-project ruff check src tests scripts

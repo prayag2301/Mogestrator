@@ -1,7 +1,6 @@
 """The ``mog`` command line. Surface defined in docs/SPEC-cli.md.
 
-M1 implements the index/inspect subset: init, index, status, verify, show, map.
-Retrieval commands (search, impact, why) arrive in M2.
+Index/inspect commands plus experimental retrieval, memory, and MCP serving.
 """
 
 from __future__ import annotations
@@ -17,15 +16,15 @@ from rich.console import Console
 from rich.table import Table
 
 from mog import __version__
-from mog.graph.anchors import drift, file_hash, span_hash
+from mog.config import ensure_gitignored as _ensure_gitignored
+from mog.config import index_options
 from mog.graph.models import EdgeKind
 from mog.graph.store import SECRET_LABEL, Store
 from mog.index.indexer import Indexer
-from mog.index.parsers.base import spec_for_path
-from mog.index.walker import DEFAULT_EXCLUDES, MAX_FILE_BYTES
 
 app = typer.Typer(
-    name="mog", help="Mogestrator — a context substrate for coding agents.",
+    name="mog",
+    help="Mogestrator — a context substrate for coding agents.",
     add_completion=False,
 )
 console = Console()
@@ -46,25 +45,6 @@ index:
 DEFAULT_MOGIGNORE = "# Paths mog should not index (same syntax as .gitignore)\n*.min.js\n*.lock\n"
 
 
-def _ensure_gitignored(root: Path, entry: str = ".mog/") -> bool:
-    """Add ``.mog/`` to .gitignore. Returns True if it was written.
-
-    Printing a reminder is not a safe default: the index describes the whole
-    tree, and committing it publishes that description (ADR-0008).
-    """
-    ignore = root / ".gitignore"
-    lines = ignore.read_text(encoding="utf-8").splitlines() if ignore.exists() else []
-    if any(line.strip().rstrip("/") == entry.rstrip("/") for line in lines):
-        return False
-    prefix = "" if not lines or lines[-1] == "" else "\n"
-    with ignore.open("a", encoding="utf-8") as fh:
-        fh.write(
-            f"{prefix}# mogestrator index — describes the whole tree, keep it local\n"
-            f"{entry}\n"
-        )
-    return True
-
-
 def _root(explicit: Path | None = None) -> Path:
     """Nearest ancestor holding mogestrator.yaml or .mog/, else cwd."""
     if explicit:
@@ -77,42 +57,8 @@ def _root(explicit: Path | None = None) -> Path:
 
 
 def _index_options(root: Path) -> dict:
-    """Validate supported index settings before changing the store."""
-    cfg = root / "mogestrator.yaml"
-    if not cfg.exists():
-        return {}
     try:
-        import yaml
-
-        data = yaml.safe_load(cfg.read_text(encoding="utf-8"))
-        if (
-            not isinstance(data, dict)
-            or type(data.get("version")) is not int
-            or data["version"] != 1
-        ):
-            raise ValueError("version must be 1")
-        options = data.get("index", {})
-        if not isinstance(options, dict):
-            raise ValueError("index must be a mapping")
-        supported = {"include", "exclude", "max_file_bytes", "allow_secret_content"}
-        if unknown := options.keys() - supported:
-            raise ValueError(f"unsupported index settings: {', '.join(sorted(unknown))}")
-        result = {}
-        for key in ("include", "exclude", "allow_secret_content"):
-            if key not in options:
-                continue
-            patterns = options[key]
-            if not isinstance(patterns, list) or any(
-                not isinstance(p, str) or not p for p in patterns
-            ):
-                raise ValueError(f"index.{key} must be a list of nonempty strings")
-            result[key] = tuple(patterns)
-        result["exclude"] = (*DEFAULT_EXCLUDES, *result.get("exclude", ()))
-        maximum = options.get("max_file_bytes", MAX_FILE_BYTES)
-        if type(maximum) is not int or maximum <= 0:
-            raise ValueError("index.max_file_bytes must be a positive integer")
-        result["max_bytes"] = maximum
-        return result
+        return index_options(root)
     except Exception as exc:
         err.print(f"[red]invalid mogestrator.yaml:[/] {exc}")
         raise typer.Exit(EX_CONFIG) from exc
@@ -231,8 +177,7 @@ def status(
             console.print("[green]no files gated[/]")
         else:
             console.print(
-                f"[yellow]{len(gated)} files gated as secret[/] "
-                f"[dim](content not stored)[/]"
+                f"[yellow]{len(gated)} files gated as secret[/] [dim](content not stored)[/]"
             )
             for n in gated:
                 console.print(f"  {n.path}")
@@ -241,9 +186,14 @@ def status(
     last = store.get_meta("last_indexed_at")
     age = time.time() - last if last else None
     payload = {
-        "root": str(root), "counts": counts, "age_seconds": age,
-        "vectors": {"available": store.vec.available, "version": store.vec.version,
-                    "reason": store.vec.reason},
+        "root": str(root),
+        "counts": counts,
+        "age_seconds": age,
+        "vectors": {
+            "available": store.vec.available,
+            "version": store.vec.version,
+            "reason": store.vec.reason,
+        },
     }
     if json_out:
         _emit(jsonlib.dumps(payload, default=str))
@@ -263,7 +213,8 @@ def status(
     table.add_row("last indexed", f"{age / 60:.1f} min ago" if age else "[yellow]never[/]")
     table.add_row(
         "vector search",
-        f"[green]sqlite-vec {store.vec.version}[/]" if store.vec.available
+        f"[green]sqlite-vec {store.vec.version}[/]"
+        if store.vec.available
         else f"[yellow]unavailable[/] [dim]({store.vec.reason})[/]",
     )
     console.print(table)
@@ -277,46 +228,27 @@ def verify(
     strict: Annotated[bool, typer.Option("--strict", help="Exit 4 if any drift.")] = False,
 ) -> None:
     """Re-check every anchor against the working tree and report drift."""
-    from mog.index.parsers.languages import get_parser
+    from mog.serve.service import RepositoryService
 
     root = _root(directory)
-    store = _open(root)
-    checked = fresh = 0
-    problems: list[dict[str, str]] = []
-    cache: dict[str, dict[str, str]] = {}
-
-    for node in store.find_nodes(limit=-1):
-        if not node.anchor:
-            continue
-        checked += 1
-        path = node.anchor.path
-        if path not in cache:
-            cache[path] = _current_spans(root / path, path, get_parser, root)
-        current = cache[path].get(node.anchor.symbol or "")
-        reason = drift(node.anchor.span_hash, current)
-        if reason is None:
-            fresh += 1
-        else:
-            problems.append({"id": node.id, "location": node.display(), "reason": reason})
-
-    rate = (len(problems) / checked * 100) if checked else 0.0
+    if not (root / ".mog/graph.db").exists():
+        err.print("no index; run mog index")
+        raise typer.Exit(EX_STALE)
+    try:
+        payload = RepositoryService(root).call("verify")
+    except ValueError as exc:
+        err.print(str(exc), markup=False)
+        raise typer.Exit(EX_CONFIG) from exc
     if json_out:
-        _emit(jsonlib.dumps({"checked": checked, "fresh": fresh,
-                             "drifted": len(problems), "drift_rate_pct": round(rate, 2),
-                             "problems": problems[:200]}))
+        _emit(jsonlib.dumps(payload))
     else:
         console.print(
-            f"checked [bold]{checked}[/] anchors · [green]{fresh} hold[/] · "
-            f"[yellow]{len(problems)} drifted[/] ([bold]{rate:.1f}%[/] drift rate)"
+            f"checked {payload['checked']} anchors · {payload['fresh']} hold · "
+            f"{payload['drifted']} drifted ({payload['drift_rate_pct']}% drift rate)"
         )
-        for p in problems[:20]:
-            console.print(f"  [yellow]{p['reason']:14}[/] {p['location']}")
-        if len(problems) > 20:
-            console.print(f"  [dim]…and {len(problems) - 20} more[/]")
-        if problems:
-            console.print("\n[dim]drift is expected after edits — run 'mog index' to refresh[/]")
-    store.close()
-    if strict and problems:
+        for problem in payload["problems"][:20]:
+            console.print(f"  {problem['location']}: {problem['reason']}", markup=False)
+    if strict and payload["drifted"]:
         raise typer.Exit(EX_STALE)
 
 
@@ -327,28 +259,6 @@ def _resolve(store: Store, target: str):
     if path:
         matches = [n for n in matches if n.path == path]
     return matches[0] if matches else None
-
-
-def _current_spans(abs_path: Path, rel: str, get_parser, root: Path) -> dict[str, str]:
-    """Symbol -> span hash for the file as it exists right now."""
-    spec = spec_for_path(rel)
-    try:
-        abs_path.resolve(strict=True).relative_to(root.resolve())
-        source = abs_path.read_bytes()
-    except (OSError, ValueError, RuntimeError):
-        return {}
-    spans = {"": file_hash(source)}
-    if spec is None:
-        return spans
-    try:
-        tree = get_parser(spec.name).parse(source)
-    except Exception:
-        return spans
-    from mog.index.parsers.base import extract
-
-    symbols, _ = extract(tree.root_node, source, spec, rel)
-    spans.update({s.qualname: span_hash(s.node, source) for s in symbols})
-    return spans
 
 
 @app.command()
@@ -398,7 +308,8 @@ def map(
     store = _open(root)
     rows = store.db.execute(
         "SELECT path, count(*) c FROM nodes WHERE kind IN ('symbol','test') "
-        "GROUP BY path ORDER BY c DESC LIMIT ?", (limit,)
+        "GROUP BY path ORDER BY c DESC LIMIT ?",
+        (limit,),
     ).fetchall()
     if not rows:
         err.print("[yellow]index is empty[/]")
@@ -410,9 +321,11 @@ def map(
     table.add_column("top-level", style="dim")
     for r in rows:
         names = [
-            n["name"] for n in store.db.execute(
+            n["name"]
+            for n in store.db.execute(
                 "SELECT name FROM nodes WHERE path=? AND kind='symbol' "
-                "AND json_extract(meta,'$.qualname') NOT LIKE '%.%' LIMIT 5", (r["path"],)
+                "AND json_extract(meta,'$.qualname') NOT LIKE '%.%' LIMIT 5",
+                (r["path"],),
             )
         ]
         table.add_row(r["path"], str(r["c"]), ", ".join(names))
@@ -420,9 +333,204 @@ def map(
     store.close()
 
 
+def _query(operation: str, directory: Path | None, json_out: bool, **kwargs) -> None:
+    from mog.retrieve.engine import serialize
+    from mog.serve.service import RepositoryService
+
+    try:
+        result = RepositoryService(_root(directory)).call(
+            operation,
+            **{k: v for k, v in kwargs.items() if k != "explain"},
+        )
+    except FileNotFoundError as exc:
+        err.print(str(exc), markup=False)
+        raise typer.Exit(EX_STALE) from exc
+    except LookupError as exc:
+        err.print(str(exc), markup=False)
+        raise typer.Exit(EX_NOT_FOUND) from exc
+    except PermissionError as exc:
+        err.print(str(exc), markup=False)
+        raise typer.Exit(6) from exc
+    except (ValueError, ImportError, RuntimeError) as exc:
+        err.print(str(exc), markup=False)
+        raise typer.Exit(EX_CONFIG) from exc
+    if json_out:
+        _emit(serialize(result))
+    elif "items" in result:
+        for item in result["items"]:
+            console.print(f"{item['location']} [{item['state']}] {item['zoom']}", markup=False)
+            console.print(item["content"], markup=False)
+            if item.get("warning"):
+                console.print(item["warning"], markup=False)
+            if kwargs.get("explain"):
+                console.print(serialize(item["provenance"]), markup=False)
+        for warning in result["warnings"]:
+            err.print(warning, markup=False)
+        console.print(
+            f"{len(result['items'])} results · {result['token_upper_bound']} token upper bound"
+        )
+    else:
+        console.print(serialize(result), markup=False)
+
+
+@app.command()
+def search(
+    query: str,
+    directory: Annotated[Path | None, typer.Option("--repo")] = None,
+    budget: Annotated[int, typer.Option(min=512, max=100_000)] = 4000,
+    zoom: str = "auto",
+    kind: str | None = None,
+    semantic: bool = False,
+    explain: bool = False,
+    json_out: Annotated[bool, typer.Option("--json")] = False,
+) -> None:
+    """Retrieve ranked anchored context with exact/FTS seeds and graph expansion."""
+    _query(
+        "search",
+        directory,
+        json_out,
+        query=query,
+        budget=budget,
+        zoom=zoom,
+        kind=kind,
+        semantic=semantic,
+        explain=explain,
+    )
+
+
+@app.command()
+def expand(
+    target: str,
+    directory: Annotated[Path | None, typer.Option("--repo")] = None,
+    zoom: str = "L2",
+    budget: Annotated[int, typer.Option(min=512, max=100_000)] = 4000,
+    json_out: Annotated[bool, typer.Option("--json")] = False,
+) -> None:
+    """Expand a node at L0 (map), L1 (signature), L2 (body), or L3 (file)."""
+    _query("expand", directory, json_out, target=target, zoom=zoom, budget=budget)
+
+
+@app.command()
+def impact(
+    symbol: str,
+    directory: Annotated[Path | None, typer.Option("--repo")] = None,
+    depth: Annotated[int, typer.Option(min=0, max=8)] = 2,
+    tests: bool = False,
+    budget: Annotated[int, typer.Option(min=512, max=100_000)] = 4000,
+    json_out: Annotated[bool, typer.Option("--json")] = False,
+) -> None:
+    """Find reverse callers and affected tests, with bounded dependency traversal."""
+    _query(
+        "impact", directory, json_out, target=symbol, depth=depth, tests_only=tests, budget=budget
+    )
+
+
+@app.command()
+def neighbors(
+    target: str,
+    directory: Annotated[Path | None, typer.Option("--repo")] = None,
+    edge: str | None = None,
+    reverse: bool = False,
+    budget: Annotated[int, typer.Option(min=512, max=100_000)] = 4000,
+    json_out: Annotated[bool, typer.Option("--json")] = False,
+) -> None:
+    """Inspect typed graph relationships."""
+    _query(
+        "neighbors", directory, json_out, target=target, edge=edge, reverse=reverse, budget=budget
+    )
+
+
+@app.command()
+def why(
+    topic: str,
+    directory: Annotated[Path | None, typer.Option("--repo")] = None,
+    budget: Annotated[int, typer.Option(min=512, max=100_000)] = 4000,
+    json_out: Annotated[bool, typer.Option("--json")] = False,
+) -> None:
+    """Search recorded decisions, failures, and constraints."""
+    _query("why", directory, json_out, query=topic, budget=budget)
+
+
+@app.command()
+def remember(
+    kind: str,
+    content: str,
+    directory: Annotated[Path | None, typer.Option("--repo")] = None,
+    anchor: str | None = None,
+    json_out: Annotated[bool, typer.Option("--json")] = False,
+) -> None:
+    """Record an episodic memory with an optional node ID or path::symbol anchor."""
+    _query(
+        "remember", directory, json_out, kind=kind, content=content, anchor=anchor, origin="user"
+    )
+
+
+@app.command()
+def recall(
+    node_id: str,
+    directory: Annotated[Path | None, typer.Option("--repo")] = None,
+    json_out: Annotated[bool, typer.Option("--json")] = False,
+) -> None:
+    """Restore a recorded memory verbatim."""
+    _query("recall", directory, json_out, node_id=node_id)
+
+
+@app.command()
+def pin(
+    node_id: str,
+    directory: Annotated[Path | None, typer.Option("--repo")] = None,
+) -> None:
+    """Pin a persistent memory."""
+    _query("pin", directory, True, node_id=node_id, value=True)
+
+
+@app.command()
+def unpin(
+    node_id: str,
+    directory: Annotated[Path | None, typer.Option("--repo")] = None,
+) -> None:
+    """Unpin a persistent memory."""
+    _query("pin", directory, True, node_id=node_id, value=False)
+
+
+@app.command()
+def embed(
+    directory: Annotated[Path | None, typer.Option("--repo")] = None,
+    model: str = "BAAI/bge-small-en-v1.5",
+) -> None:
+    """Build cached local embeddings (optional extra; first run downloads model weights)."""
+    _query("embed", directory, True, model=model)
+
+
+@app.command()
+def serve(
+    directory: Annotated[Path | None, typer.Option("--repo")] = None,
+    mcp: Annotated[bool, typer.Option("--mcp")] = True,
+    transport: str = "stdio",
+    port: Annotated[int, typer.Option(min=1, max=65535)] = 8765,
+    watch: bool = False,
+    allow_memory_writes: bool = False,
+) -> None:
+    """Serve repository-bound MCP tools over stdio or loopback HTTP (/mcp)."""
+    if transport not in {"stdio", "http"}:
+        raise typer.BadParameter("transport must be stdio or http")
+    try:
+        from mog.serve.mcp import create_server
+    except ImportError as exc:
+        err.print('Install MCP support: pip install "mogestrator[mcp]"', markup=False)
+        raise typer.Exit(EX_CONFIG) from exc
+    server = create_server(
+        _root(directory), watch=watch, allow_memory_writes=allow_memory_writes, port=port
+    )
+    server.run(transport="stdio" if transport == "stdio" else "streamable-http")
+
+
 class _null:
-    def __enter__(self): return self
-    def __exit__(self, *a): return False
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *a):
+        return False
 
 
 if __name__ == "__main__":
