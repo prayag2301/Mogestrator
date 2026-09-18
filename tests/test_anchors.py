@@ -1,9 +1,9 @@
 """Anchors must be insensitive to formatting and sensitive to behaviour."""
 
 import pytest
-from tree_sitter_language_pack import get_parser
 
 from mog.graph.anchors import drift, file_hash, normalize_span, span_hash, span_hash_text
+from mog.index.parsers.languages import get_parser
 
 
 @pytest.fixture

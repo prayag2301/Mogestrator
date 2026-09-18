@@ -1,0 +1,11 @@
+version: 1
+project: mogestrator
+
+index:
+  exclude: ["**/node_modules/**", "**/.venv/**", "**/dist/**", "**/target/**"]
+  max_file_bytes: 400000
+  # The ingest gate (ADR-0008) would otherwise drop this file's body: it holds
+  # fake credentials on purpose. Per-pattern and opt-in — there is no global
+  # off switch.
+  allow_secret_content:
+    - "tests/test_sensitivity.py"

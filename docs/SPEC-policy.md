@@ -1,6 +1,10 @@
 # Spec: Policy Plane — prompt integrity and network control
 
-> Status: **Draft v1**, normative for M5.
+> Status: **Draft v1**, normative for M5 — except the ingest half of §3, which
+> shipped in M1: taint is assigned by the indexer and `secret` content is never
+> stored ([ADR-0008](./adr/0008-ingest-sensitivity-gate.md)). A label is only
+> sound where provenance is known, and the store cannot precede its own
+> labelling.
 > Rationale: [ADR-0006](./adr/0006-policy-plane-taint-and-egress.md).
 >
 > Scope: agents with tools, especially **server-based chats** — multi-user,

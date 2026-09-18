@@ -1,6 +1,7 @@
 # Distribution & installation channels
 
-> Status: **Design (pre-code)**. Target milestone: **M3**.
+> Status: Python packaging and release CI implemented for **0.1.1**. Other
+> channels remain planned for **M6**.
 >
 > Principle: *adoption dies at the install step*. A developer must be able to
 > try `mog` in under 30 seconds without touching their global Python, and a
@@ -11,7 +12,7 @@
 | Artifact | Proposed name | Note |
 |----------|---------------|------|
 | CLI binary | `mog` | short, memorable, typed dozens of times a day |
-| PyPI package | `mogestrator` | **verify availability on PyPI before first publish** |
+| PyPI package | `mogestrator` | 0.0.1 placeholder; functional releases start at 0.1.1 |
 | npm package | `@mogestrator/cli` | scoped, wraps the binary |
 | Homebrew | `prayag2301/tap/mog` | own tap first; core tap only after traction |
 | Docker | `ghcr.io/prayag2301/mogestrator` | GHCR, free for public repos |
@@ -21,7 +22,7 @@
 
 | # | Channel | Command | Audience | Priority |
 |---|---------|---------|----------|----------|
-| 1 | **uv (zero-install)** | `uvx mogestrator index` | try it now, no commitment | **P0** |
+| 1 | **uv (zero-install)** | `uvx --from mogestrator mog index` | try it now, no commitment | **P0** |
 | 2 | **uv tool** | `uv tool install mogestrator` | daily driver, isolated | **P0** |
 | 3 | **pip** | `pip install mogestrator` | inside an existing venv / CI | **P0** |
 | 4 | **pipx** | `pipx install mogestrator` | Python devs who keep globals clean | P1 |
@@ -38,18 +39,44 @@
 | 15 | **VS Code extension** | Marketplace: *Mogestrator* | GUI run/sync surface | P3 |
 | 16 | **Scoop / WinGet** | `scoop install mog` | Windows package managers | P3 |
 
-P0 ships in M3. Everything else follows once P0 is stable.
+Python release tooling is implemented; publication requires the PyPI account
+configuration below. Other channels remain planned.
 
 ## 2. How each is built
 
 ### Python wheel (channels 1–4, 10)
 - `pyproject.toml`, PEP 621 metadata, hatchling backend.
 - Entry point: `[project.scripts] mog = "mog.cli.main:app"`.
-- Pure-Python, no compiled deps, so one universal wheel + sdist.
+- Mogestrator ships one pure-Python wheel + sdist. tree-sitter, grammar wheels,
+  and sqlite-vec are native dependencies installed alongside it.
 - Extras keep the base install lean:
   `mogestrator[api-embeddings]`, `[mcp]`, `[gateway]`, `[all]`.
-- Published by CI on tag via **PyPI Trusted Publishing (OIDC)** — no API token
-  stored in the repo.
+- Published by CI on a **published GitHub release**, via PyPI Trusted Publishing
+  (OIDC). Manual workflow runs test the pipeline without publishing.
+- The tag must equal `v` plus the version in both `pyproject.toml` and
+  `src/mog/__init__.py`. Tests on three operating systems, metadata checks,
+  and an installed-wheel smoke test must pass before upload.
+
+### PyPI account setup and release procedure
+
+At <https://pypi.org/manage/project/mogestrator/settings/publishing/>, configure:
+
+| Field | Value |
+|-------|-------|
+| Owner | `prayag2301` |
+| Repository | `Orchestration` |
+| Workflow filename | `release.yml` |
+| Environment | `pypi` |
+
+The old `v0.1.0` release points to placeholder code and failed with
+`invalid-publisher`; it must not be retried as a functional release. Use the new
+`v0.1.1` tag on the verified main commit. Do not move the old tag.
+
+After merge, create a GitHub release for the new version. Watch the Release
+workflow, then verify the version on PyPI and run `scripts/smoke.py` using a
+fresh environment installed from PyPI. A GitHub release alone does not prove
+that publishing succeeded. If OIDC fails, correct the matching publisher in
+PyPI and rerun the failed job; never put a long-lived token into the repository.
 
 ### Standalone binary (channels 5–9, 13, 14)
 - Built with PyInstaller (one-file) for: macOS arm64/x64, Linux x64/arm64

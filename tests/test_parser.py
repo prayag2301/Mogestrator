@@ -1,7 +1,7 @@
 import pytest
-from tree_sitter_language_pack import get_parser
 
 from mog.index.parsers.base import SPECS, extract, spec_for_path
+from mog.index.parsers.languages import get_parser
 
 
 def parse(lang, code, path="f.py"):

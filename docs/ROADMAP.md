@@ -22,7 +22,11 @@ Sequencing, not dates. Every milestone ends in a demo a stranger can reproduce.
 - [x] Anchors: normalized span hashing, drift detection, automatic staleness
 - [x] `mog init/index/status/verify/show/map`
 - [x] Perf measured on a 525k-LOC repo; results in ARCHITECTURE §6
-- [x] 48 tests covering anchors, store, parsers, indexing and the CLI contract
+- [x] Ingest sensitivity gate: taint labels assigned at the indexer, symlink
+      confinement, secret content never stored or indexed (ADR-0008) — moved
+      forward from M5, because the store cannot precede its own labelling
+- [x] 86 tests covering anchors, store, parsers, indexing, the ingest gate and
+      the CLI contract
 - [ ] `imports` edges (parsed and stored on the file node, not yet linked)
 - [ ] Git miner for `co_changed`
 - [ ] Local embedder + content-hash cache (**Q1** still open)
@@ -64,7 +68,10 @@ Sequencing, not dates. Every milestone ends in a demo a stranger can reproduce.
 - [ ] **Eval gate:** zero poisoning through, full exfiltration suite blocked
 
 ## M6 — Distribution
-- [ ] PyPI `mogestrator`, uv/pipx, Homebrew, binaries, Docker, npm wrapper
+- [x] Python wheel/sdist build, release version checks, and installed-package
+      CI on macOS/Linux/Windows; 0.1.1 prepared for publication
+- [ ] Verify functional 0.1.1 publication on PyPI (Trusted Publisher required)
+- [ ] Homebrew, binaries, Docker, npm wrapper
 - [ ] Signed releases, checksums, SBOM, install smoke matrix
 
 ## Deferred

@@ -2,6 +2,15 @@
 
 > Status: **Draft v1**. Package: `mogestrator` · binary: `mog`.
 
+## Implemented in 0.1.1
+
+`init`, `index`, `status`, `verify`, `show`, and `map` are available. All except
+`init` take `--repo`; `index`, `status`, and `verify` take `--json`. `index`
+supports `--full`; `verify --strict` exits 4 on drift. Verification covers file,
+symbol, test, and episodic anchors, and never follows a path outside the repo.
+`show path::symbol` requires the path to match. Use `mog COMMAND --help` for
+the supported options. The remaining commands and flags below are a design.
+
 ## Global flags
 ```
 --repo PATH · --db PATH · --json · --budget TOKENS · -q/-v · --no-color · --version
@@ -17,6 +26,7 @@
 mog init                          scaffold mogestrator.yaml + .mog/ + .mogignore
 mog index [--full] [--watch]      build/update the graph; incremental by default
 mog status                        node/edge/vector counts, index age, drift rate
+mog status --secrets              list files gated at ingest (ADR-0008)
 mog verify [--fix]                re-check anchors; report stale facts
 mog map [--depth N]               print the L0 repo map
 ```
