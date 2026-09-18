@@ -70,3 +70,18 @@ def test_why_searches_entire_memory(indexed):
     service = RepositoryService(root)
     memory = service.call("remember", kind="failure", content="intro " * 250 + "socket_timeout")
     assert service.call("why", query="socket_timeout")["items"][0]["id"] == memory["id"]
+
+
+def test_context_file_pin_survives_reindex(indexed):
+    root, store, _ = indexed
+    service = RepositoryService(root)
+    from mog.graph.models import NodeKind
+
+    file_node = store.find_nodes(kind=NodeKind.FILE, path="src/auth.py")[0]
+    saved = service.call("create_context", query="authentication", pinned=[file_node.id])
+    (root / "src/auth.py").write_text((root / "src/auth.py").read_text() + "\n# changed\n")
+    service.reindex()
+    result = service.call("load_context", handle=saved["handle"], budget=4000)
+    assert result["items"][0]["location"] == "src/auth.py"
+    assert result["items"][0]["id"] != file_node.id
+    assert result["warnings"] == []

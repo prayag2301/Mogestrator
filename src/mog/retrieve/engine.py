@@ -43,6 +43,9 @@ def resolve(store: Store, target: str):
     path, sep, name = target.rpartition("::")
     if not sep:
         name = target
+        files = store.find_nodes(kind=NodeKind.FILE, path=target, limit=2)
+        if len(files) == 1:
+            return files[0]
     matches = store.find_by_qualname(name, limit=-1) or store.find_nodes(name=name, limit=-1)
     if path:
         matches = [n for n in matches if n.path == path]
