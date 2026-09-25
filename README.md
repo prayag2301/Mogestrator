@@ -4,8 +4,8 @@ A local code knowledge graph for coding agents. Mogestrator indexes a repository
 retrieves scoped context, and detects when anchored code or remembered facts have
 changed. Code stays local; no account or API key is required.
 
-**Status:** `0.1.1` is the published indexing release. `0.2.0a1` adds experimental
-retrieval and MCP integration. The broader M2 quality gate remains open: there
+**Status:** `0.1.1` is the stable indexing release. `0.2.0a2` completes M1 and
+includes experimental retrieval and MCP integration. The broader M2 quality gate remains open: there
 is no evidence yet that this beats ripgrep or chunk RAG on real development tasks.
 
 ## Install and try
@@ -13,7 +13,7 @@ is no evidence yet that this beats ripgrep or chunk RAG on real development task
 Python 3.11+:
 
 ```bash
-pip install --pre "mogestrator[mcp]==0.2.0a1"
+pip install --pre "mogestrator[mcp]==0.2.0a2"
 mog init
 mog index
 mog search "verify_token" --explain
@@ -68,7 +68,8 @@ retrieval targets require a path or node ID.
 Search combines exact/FTS ranks with bounded bidirectional graph spread. Every
 result includes an anchor, current freshness, trust labels, and a provenance
 path. Graph traversal is capped; call resolution is a name-based heuristic,
-not a complete static analyzer. `imports` and `co_changed` edges are still planned.
+not a complete static analyzer. Local `imports` links and Git-derived `co_changed`
+edges are conservative ranking hints.
 
 Zoom levels: **L0** summarizes the node's file; **L1** shows signatures;
 **L2** reads a symbol body; **L3** reads the full file. Automatic zoom falls
@@ -87,7 +88,7 @@ formatting are outside this budget.
 ### Optional local semantic search
 
 ```bash
-pip install --pre "mogestrator[embeddings]==0.2.0a1"
+pip install --pre "mogestrator[embeddings]==0.2.0a2"
 mog index
 mog embed                      # first run downloads BAAI/bge-small-en-v1.5
 mog search "validate a user's login credentials" --semantic

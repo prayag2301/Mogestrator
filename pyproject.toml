@@ -8,7 +8,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "mogestrator"
-version = "0.2.0a1"
+version = "0.2.0a2"
 description = "An offline code knowledge graph with incremental indexing, content anchors, and drift detection for coding agents."
 readme = "README.md"
 requires-python = ">=3.11"

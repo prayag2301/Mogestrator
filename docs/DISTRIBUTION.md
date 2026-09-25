@@ -1,6 +1,6 @@
 # Distribution & installation channels
 
-> Status: **0.1.1** is published; **0.2.0a1** adds experimental retrieval/MCP. Other
+> Status: **0.1.1** is stable; **0.2.0a2** completes M1 and includes experimental retrieval/MCP. Other
 > channels remain planned for **M6**.
 >
 > Principle: *adoption dies at the install step*. A developer must be able to
