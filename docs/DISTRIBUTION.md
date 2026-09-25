@@ -64,7 +64,7 @@ At <https://pypi.org/manage/project/mogestrator/settings/publishing/>, configure
 | Field | Value |
 |-------|-------|
 | Owner | `prayag2301` |
-| Repository | `Orchestration` |
+| Repository | `mogestrator` |
 | Workflow filename | `release.yml` |
 | Environment | `pypi` |
 

@@ -60,9 +60,9 @@ dev = [
 mog = "mog.cli.main:app"
 
 [project.urls]
-Homepage = "https://github.com/prayag2301/Orchestration"
-Documentation = "https://github.com/prayag2301/Orchestration/tree/main/docs"
-Issues = "https://github.com/prayag2301/Orchestration/issues"
+Homepage = "https://github.com/prayag2301/mogestrator"
+Documentation = "https://github.com/prayag2301/mogestrator/tree/main/docs"
+Issues = "https://github.com/prayag2301/mogestrator/issues"
 
 # Third-party adapters register here (ARCHITECTURE §3).
 [project.entry-points."mog.parsers"]
