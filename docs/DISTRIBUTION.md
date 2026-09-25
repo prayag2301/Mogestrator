@@ -1,6 +1,6 @@
 # Distribution & installation channels
 
-> Status: Python packaging and release CI implemented for **0.1.1**. Other
+> Status: Python packaging and release CI implemented for **0.1.2**. Other
 > channels remain planned for **M6**.
 >
 > Principle: *adoption dies at the install step*. A developer must be able to
@@ -64,13 +64,13 @@ At <https://pypi.org/manage/project/mogestrator/settings/publishing/>, configure
 | Field | Value |
 |-------|-------|
 | Owner | `prayag2301` |
-| Repository | `Orchestration` |
+| Repository | `Mogestrator` |
 | Workflow filename | `release.yml` |
 | Environment | `pypi` |
 
-The old `v0.1.0` release points to placeholder code and failed with
-`invalid-publisher`; it must not be retried as a functional release. Use the new
-`v0.1.1` tag on the verified main commit. Do not move the old tag.
+The old `v0.1.0` release points to placeholder code. The stable M1 release is
+`v0.1.2`; its tag points to the M1 release branch and uses the renamed GitHub
+repository in package metadata.
 
 After merge, create a GitHub release for the new version. Watch the Release
 workflow, then verify the version on PyPI and run `scripts/smoke.py` using a

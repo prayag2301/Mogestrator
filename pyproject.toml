@@ -1,7 +1,7 @@
 # Packaging skeleton for the `mog` CLI (package: mogestrator).
 #
-# M1 (in progress): the index/inspect CLI is implemented; retrieval is M2.
-# 0.1.1 is the first functional release; 0.0.1 reserved the package name.
+# M1 complete: indexing, inspection, and anchored text search are implemented.
+# 0.1.1 was the first functional release; 0.0.1 reserved the package name.
 
 [build-system]
 requires = ["hatchling>=1.25"]
@@ -9,7 +9,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "mogestrator"
-version = "0.1.1"
+version = "0.1.2"
 description = "An offline code knowledge graph with incremental indexing, content anchors, and drift detection for coding agents."
 readme = "README.md"
 requires-python = ">=3.11"
@@ -60,9 +60,9 @@ dev = [
 mog = "mog.cli.main:app"
 
 [project.urls]
-Homepage = "https://github.com/prayag2301/Orchestration"
-Documentation = "https://github.com/prayag2301/Orchestration/tree/main/docs"
-Issues = "https://github.com/prayag2301/Orchestration/issues"
+Homepage = "https://github.com/prayag2301/Mogestrator"
+Documentation = "https://github.com/prayag2301/Mogestrator/tree/main/docs"
+Issues = "https://github.com/prayag2301/Mogestrator/issues"
 
 # Third-party adapters register here (ARCHITECTURE §3).
 [project.entry-points."mog.parsers"]

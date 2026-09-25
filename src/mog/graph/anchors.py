@@ -29,7 +29,9 @@ def file_hash(source: bytes) -> str:
     return sha256(source)
 
 
-def normalize_span(node: TSNode, source: bytes) -> str:
+def normalize_span(
+    node: TSNode, source: bytes, *, masked_name: tuple[int, int] | None = None
+) -> str:
     """Token stream of ``node``, comments dropped and whitespace collapsed.
 
     Uses the parse tree rather than a regex so that a ``#`` inside a string
@@ -41,6 +43,9 @@ def normalize_span(node: TSNode, source: bytes) -> str:
         if n.type in _IGNORED_TYPES:
             return
         if n.child_count == 0:
+            if masked_name and n.start_byte >= masked_name[0] and n.end_byte <= masked_name[1]:
+                tokens.append("<name>")
+                return
             text = source[n.start_byte : n.end_byte].decode("utf-8", "replace").strip()
             if text:
                 tokens.append(text)
@@ -55,6 +60,17 @@ def normalize_span(node: TSNode, source: bytes) -> str:
 def span_hash(node: TSNode, source: bytes) -> str:
     """Stable identity for a span: survives reformatting, changes with behaviour."""
     return sha256(normalize_span(node, source))
+
+
+def body_hash(node: TSNode, source: bytes) -> str:
+    """Normalized symbol hash with only its declaration name masked.
+
+    A unique match lets a renamed declaration retain anchored facts. Arguments,
+    body, and nested declarations still contribute to the hash.
+    """
+    name = node.child_by_field_name("name")
+    masked = (name.start_byte, name.end_byte) if name is not None else None
+    return sha256(normalize_span(node, source, masked_name=masked))
 
 
 def span_hash_text(text: str) -> str:

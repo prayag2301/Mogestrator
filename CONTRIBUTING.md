@@ -1,7 +1,7 @@
 # Contributing
 
-> The project is in **M1**: indexing and inspection work; retrieval and agent
-> integration are still planned. Read the roadmap for the current scope.
+> M1 indexing and anchored text search are complete. Graph retrieval and agent
+> integration are planned in later milestones. Read the roadmap for scope.
 
 ## Read first
 
@@ -14,7 +14,7 @@
 
 ## Where to start
 
-The M1 checklist in [docs/ROADMAP.md](docs/ROADMAP.md) is the work queue. Take a
+The next checklist in [docs/ROADMAP.md](docs/ROADMAP.md) is the work queue. Take a
 box, open an issue naming it, keep the PR scoped to it.
 
 ## Ground rules
@@ -36,8 +36,8 @@ box, open an issue naming it, keep the PR scoped to it.
 ## Dev setup
 
 ```bash
-git clone https://github.com/prayag2301/Orchestration.git
-cd Orchestration
+git clone https://github.com/prayag2301/Mogestrator.git
+cd Mogestrator
 uv venv && source .venv/bin/activate
 uv pip install -e . pytest ruff
 ruff check src tests scripts

@@ -2,14 +2,15 @@
 
 > Status: **Draft v1**. Package: `mogestrator` · binary: `mog`.
 
-## Implemented in 0.1.1
+## Implemented in 0.1.2
 
-`init`, `index`, `status`, `verify`, `show`, and `map` are available. All except
-`init` take `--repo`; `index`, `status`, and `verify` take `--json`. `index`
+`init`, `index`, `status`, `verify`, `show`, `map`, and `search` are available. All except
+`init` take `--repo`; `index`, `status`, `verify`, and `search` take `--json`. `index`
 supports `--full`; `verify --strict` exits 4 on drift. Verification covers file,
 symbol, test, and episodic anchors, and never follows a path outside the repo.
-`show path::symbol` requires the path to match. Use `mog COMMAND --help` for
-the supported options. The remaining commands and flags below are a design.
+`show path::symbol` requires the path to match. `search` uses local FTS5 matching,
+returns anchored nodes, and takes `--limit`. Use `mog COMMAND --help` for
+supported options. The remaining commands and flags below are a design.
 
 ## Global flags
 ```
@@ -33,7 +34,8 @@ mog map [--depth N]               print the L0 repo map
 
 ## Query
 ```
-mog search "<query>" [--budget 4000] [--zoom auto|L0..L3] [--kind ...] [--explain]
+mog search "<query>" [--limit 20] [--json]  # M1 full-text search
+mog search "<query>" [--budget 4000] [--zoom auto|L0..L3] [--kind ...] [--explain]  # M2
 mog impact <symbol> [--depth 2] [--tests]
 mog why "<topic>"                 decisions, failures, constraints from the ledger
 mog neighbors <node> [--edge calls,co_changed]

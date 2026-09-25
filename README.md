@@ -11,23 +11,24 @@ integrity and network policy on tool-using agents; see the status note below for
 what is built versus specified.
 
 ```bash
-git clone https://github.com/prayag2301/Orchestration.git && cd Orchestration
+git clone https://github.com/prayag2301/Mogestrator.git && cd Mogestrator
 uv venv && uv pip install -e .
 
 mog index      # build the graph
+mog search "token" # find anchored matches
 mog verify     # re-check every anchor: how much of what it knows is now wrong?
 ```
 
-> **Status: M1 of 6 — the index works, retrieval does not.**
+> **Status: M1 complete.** Stable release: **0.1.2**.
 >
 > **Built and tested:** the context graph, content-hash anchors with automatic
 > staleness detection, incremental indexing for Python/TypeScript/Go/Rust, the
 > ingest sensitivity gate (credentials are labelled and never stored), and the
-> `init · index · status · verify · show · map` commands. 86 tests.
-> Measured on a 525k-LOC repo: **11.2s** full index, **1.5s** incremental (historical benchmark, before the
-> 0.1.1 correctness fixes; not remeasured for this release).
+> `init · index · status · verify · show · map · search` commands. Search uses
+> local full-text matching and returns content anchors. Import, test, call, and
+> bounded Git co-change relationships are indexed.
 >
-> **Not built:** everything downstream — retrieval (`search`, `impact`, `why`),
+> **Not built:** graph retrieval (`impact`, `why`, seed-and-spread),
 > embeddings, the working set, the MCP server, and the rest of the policy plane
 > (its ingest half — taint labels at the indexer — ships with M1, ADR-0008).
 > Those sections below describe the design, not shipped behaviour, and are
@@ -214,24 +215,21 @@ Full threat model (T1–T6) and specification: [SPEC-policy.md](docs/SPEC-policy
 ### From source
 
 ```bash
-git clone https://github.com/prayag2301/Orchestration.git && cd Orchestration
+git clone https://github.com/prayag2301/Mogestrator.git && cd Mogestrator
 uv venv && source .venv/bin/activate
 uv pip install -e .
 mog --version
 ```
 
-Requires Python 3.11+. Version **0.0.1** is a name-only placeholder; the
-functional indexing package starts at **0.1.1**. Check
-[PyPI](https://pypi.org/project/mogestrator/) for published versions. Once 0.1.1
-is published, install it with an explicit minimum so an unavailable release
-fails clearly instead of installing the placeholder:
+Requires Python 3.11+. Install the stable M1 release from
+[PyPI](https://pypi.org/project/mogestrator/):
 
 ```bash
-pip install "mogestrator>=0.1.1"
+pip install "mogestrator>=0.1.2"
 # or, in an isolated tool environment:
-uv tool install "mogestrator>=0.1.1"
+uv tool install "mogestrator>=0.1.2"
 # run without a persistent installation:
-uvx --from "mogestrator>=0.1.1" mog index
+uvx --from "mogestrator>=0.1.2" mog index
 ```
 
 The release pipeline tests macOS, Linux, and Windows before publishing. The
@@ -326,22 +324,20 @@ humans — the consumer is an agent.
 
 ## Does it actually work?
 
-**Speed: measured on the initial M1 implementation.** These figures have not
-been remeasured after 0.1.1 changed incremental edge resolution and credential
-scanning. On django/django (4,989 files, 44.6 MB of source, ~525k LOC),
-Apple Silicon laptop:
+**Speed: measured for 0.1.2** on django/django at pinned commit
+`a3d71038401b9340f550f2fdf1caaad66465ba88` (4,852 indexed files, 45.1 MB
+of source), on an Apple Silicon laptop:
 
 | | Target | Measured | |
 |---|---|---|---|
-| Full index | < 60s for 50k LOC | **11.2s for 525k LOC** | ✅ |
-| Incremental re-index | < 2s | **1.5s** | ✅ |
-| Index size | < 15% of source | **145 MB vs 44.6 MB — 325%** | ❌ |
+| Full index | < 60s for 50k LOC | **25.4s** | ✅ |
+| Incremental re-index | < 2s | **1.6s** | ✅ |
+| Index size | < 400% of source | **125.6 MB vs 45.1 MB — 279%** | ✅ |
 
-The size target is missed by more than an order of magnitude. It was a planning
-guess with no analysis behind it, and roughly 1 KB per symbol is unavoidable once
-you store an anchor, a preview, and a full-text entry. Documented with the
-breakdown and the options in [ADR-0007](docs/adr/0007-index-scale-findings.md)
-rather than quietly re-baselined.
+The original 15% size target proved unrealistic for symbol-level anchors and
+full-text lookup. [ADR-0007](docs/adr/0007-index-scale-findings.md) records the
+revised 400% limit; [ADR-0010](docs/adr/0010-m1-relationship-continuity-and-fts.md)
+records the contentless FTS change.
 
 Measuring on a real repo instead of fixtures also caught a design flaw:
 naive call resolution produced **1,991,411 edges, 98.3% of them ambiguous**
@@ -376,7 +372,7 @@ results go in `docs/results/` too.
 | [SPEC-cli.md](docs/SPEC-cli.md) · [SPEC-config.md](docs/SPEC-config.md) | `mog` commands · `mogestrator.yaml` |
 | [DISTRIBUTION.md](docs/DISTRIBUTION.md) | 16 install channels, build and signing |
 | [ROADMAP.md](docs/ROADMAP.md) | M1–M6 checklists — the work queue |
-| [adr/](docs/adr/) | Eight decisions, each with the alternatives rejected |
+| [adr/](docs/adr/) | Architecture decisions and measured tradeoffs |
 
 ## Requirements
 
@@ -390,7 +386,7 @@ by default (ADR-0005).
 
 ## Contributing
 
-M0 is done; M1 is open. [CONTRIBUTING.md](CONTRIBUTING.md) — specs lead code,
+M1 is complete. [CONTRIBUTING.md](CONTRIBUTING.md) — specs lead code,
 decisions get an ADR, and context claims need numbers.
 
 ## License

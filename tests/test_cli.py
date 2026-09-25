@@ -71,6 +71,22 @@ def test_show_resolves_qualname(repo):
     assert "refresh" in r.stdout
 
 
+def test_search_returns_anchored_result(repo):
+    assert runner.invoke(app, ["index", "--repo", str(repo)]).exit_code == 0
+    r = runner.invoke(app, ["search", "refresh", "--repo", str(repo), "--json"])
+    assert r.exit_code == 0, r.output
+    rows = json.loads(r.stdout)["results"]
+    assert any(row["location"].endswith("::TokenStore.refresh") and row["anchor"]
+               for row in rows)
+
+
+def test_search_treats_fts_syntax_as_text(repo):
+    assert runner.invoke(app, ["index", "--repo", str(repo)]).exit_code == 0
+    r = runner.invoke(app, ["search", 'refresh OR "', "--repo", str(repo), "--json"])
+    assert r.exit_code == 0, r.output
+    assert json.loads(r.stdout)["results"]
+
+
 def test_map_lists_files(repo):
     runner.invoke(app, ["index", "--repo", str(repo)])
     r = runner.invoke(app, ["map", "--repo", str(repo)])

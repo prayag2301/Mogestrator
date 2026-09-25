@@ -1,12 +1,13 @@
 """The ``mog`` command line. Surface defined in docs/SPEC-cli.md.
 
-M1 implements the index/inspect subset: init, index, status, verify, show, map.
-Retrieval commands (search, impact, why) arrive in M2.
+M1 implements indexing, inspection, and anchored full-text search.
+Graph retrieval commands (impact, why) arrive in M2.
 """
 
 from __future__ import annotations
 
 import json as jsonlib
+import re
 import sys
 from dataclasses import asdict
 from pathlib import Path
@@ -386,6 +387,40 @@ def show(
         if tests:
             console.print(f"  [cyan]{'tested by':10}[/] {', '.join(n.name for n, _, _ in tests)}")
     store.close()
+
+
+@app.command()
+def search(
+    query: Annotated[str, typer.Argument(help="Words to find in indexed names and previews.")],
+    directory: Annotated[Path | None, typer.Option("--repo")] = None,
+    limit: Annotated[int, typer.Option("--limit", min=1, max=100)] = 20,
+    json_out: Annotated[bool, typer.Option("--json")] = False,
+) -> None:
+    """Find anchored nodes with local full-text search."""
+    terms = re.findall(r"\w+", query, flags=re.UNICODE)
+    if not terms:
+        err.print("[red]query must contain a word[/]")
+        raise typer.Exit(EX_USAGE)
+    root = _root(directory)
+    store = _open(root)
+    # Quote each term so punctuation cannot be interpreted as FTS syntax.
+    matches = store.search_text(" OR ".join(f'"{term}"' for term in terms), limit)
+    rows = [
+        {"id": node.id, "location": node.display(), "kind": node.kind.value,
+         "state": node.state.value, "anchor": asdict(node.anchor) if node.anchor else None,
+         "score": score}
+        for node, score in matches
+    ]
+    if json_out:
+        _emit(jsonlib.dumps({"query": query, "results": rows}))
+    else:
+        for row in rows:
+            console.print(f"{row['location']}  [dim]{row['state']} · {row['id']}[/]")
+        if not rows:
+            err.print("[yellow]no matches[/]")
+    store.close()
+    if not rows:
+        raise typer.Exit(EX_NOT_FOUND)
 
 
 @app.command()
