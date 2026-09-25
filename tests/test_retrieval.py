@@ -178,7 +178,7 @@ def test_schema_v1_upgrade_preserves_nodes(tmp_path):
     db.commit()
     db.close()
     store = Store(path)
-    assert store.db.execute("PRAGMA user_version").fetchone()[0] == 2
+    assert store.db.execute("PRAGMA user_version").fetchone()[0] == 3
     assert store.db.execute("SELECT count(*) FROM embedding_cache").fetchone()[0] == 0
     assert store.get_node("legacy").content == "keep this memory"
     store.close()

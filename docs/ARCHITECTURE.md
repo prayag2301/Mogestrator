@@ -129,26 +129,22 @@ The system degrades rather than breaking:
 
 ## 6. Performance — measured at M1
 
-Measured on django/django @ depth-1 (4,989 indexed files, 44.6 MB of source,
-~525k LOC Python), Apple Silicon laptop, no embeddings yet.
+Fresh index on django/django `a3d71038401b9340f550f2fdf1caaad66465ba88`
+(4,852 indexed files, 34.0 MB of source, ~1.05M indexed lines), Apple M1,
+Python 3.11, no embeddings. [Reproduction and full results](./results/m1-index-2026-09-25.md).
 
-| Operation | Target | **Measured (M1)** | |
-|-----------|--------|-------------------|---|
-| Full index, 50k LOC | < 60s | **11.2s for 525k LOC** (~10× headroom) | ✅ |
-| Incremental re-index, no changes | < 2s | **1.5s** | ✅ |
-| Nodes / edges produced | — | 48,136 / 198,581 | |
-| `search_context` p95 | < 250ms | not yet implemented (M2) | — |
-| Graph expansion, 3 hops | < 20ms | not yet implemented (M2) | — |
-| **DB size** | **< 15% of source** | **145 MB vs 44.6 MB = 325%** | ❌ |
+| Operation | Target | Measured | |
+|-----------|--------|----------|---|
+| Full index, 50k LOC | < 60s | **18.23s for ~1.05M indexed lines** | ✅ |
+| Incremental re-index, no changes | < 2s | **0.78s** | ✅ |
+| Nodes / edges produced | — | 45,817 / 200,773 | |
+| Anchored search | Result returned | `Model.save` at `django/db/models/base.py::Model.save` | ✅ |
+| **DB size** | **< 400% of source** (ADR-0007) | **125.55 MB / 34.01 MB = 369%** | ✅ |
 
-**The DB-size target is missed by more than an order of magnitude**, and it was
-never evidence-based — it was a planning guess. Storing an L1 preview, an
-anchor, and a token-level FTS index costs roughly 1 KB per symbol before any
-vectors exist; 15% of source was never reachable at this node granularity.
-Breakdown at 145 MB: nodes 62 MB, edges 22 MB, edge indexes 26 MB, FTS 27 MB.
-See [ADR-0007](./adr/0007-index-scale-findings.md) for the revised target and
-the options for closing the gap. Recorded rather than quietly re-baselined,
-per the "prove it or drop it" principle in PLAN.md §4.
+The original <15% size guess was retired by [ADR-0007](./adr/0007-index-scale-findings.md).
+Contentless FTS in schema v3 removes a duplicate copy of previews while retaining
+the token index. These M1 measurements do not include optional embedding vectors
+or establish the M2 retrieval quality and latency gates.
 
 ## 7. Cross-platform
 

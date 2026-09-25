@@ -16,7 +16,7 @@ from typing import Any
 
 from mog.graph.models import Anchor, Edge, EdgeKind, Node, NodeKind, State
 
-SCHEMA_VERSION = 2
+SCHEMA_VERSION = 3
 
 #: Nodes carrying this label hold no content anywhere in the store (ADR-0008).
 #: Duplicated from mog.index.sensitivity rather than imported: the storage layer
@@ -69,7 +69,7 @@ CREATE TABLE IF NOT EXISTS files (
 );
 
 CREATE VIRTUAL TABLE IF NOT EXISTS fts USING fts5(
-    node_id UNINDEXED, name, content, tokenize='unicode61'
+    name, content, content='', tokenize='unicode61'
 );
 
 CREATE TABLE IF NOT EXISTS meta (key TEXT PRIMARY KEY, value TEXT NOT NULL);
@@ -143,6 +143,24 @@ class Store:
             )
         if current < 2:
             self.db.executescript(_EMBEDDINGS_SCHEMA)
+        if 0 < current < 3:
+            # The former FTS table stored a second copy of each preview. Rebuild
+            # postings from nodes while preserving all structural and episodic data.
+            with self.transaction():
+                self.db.execute("DROP TABLE fts")
+                self.db.execute(
+                    "CREATE VIRTUAL TABLE fts USING fts5("
+                    "name, content, content='', tokenize='unicode61')"
+                )
+                rows = self.db.execute("SELECT rowid AS rid,kind,name,content,labels FROM nodes")
+                self.db.executemany(
+                    "INSERT INTO fts(rowid,name,content) VALUES (?,?,?)",
+                    (_fts_payload(r) for r in rows if SECRET_LABEL not in json.loads(r["labels"])),
+                )
+                self.db.execute(f"PRAGMA user_version={SCHEMA_VERSION}")
+            # DROP frees pages internally; VACUUM returns them to the filesystem.
+            self.db.execute("VACUUM")
+        elif current == 0:
             self.db.execute(f"PRAGMA user_version={SCHEMA_VERSION}")
 
     @contextmanager
@@ -180,6 +198,7 @@ class Store:
         ]
         if not rows:
             return 0
+        self._delete_fts_by_ids([n.id for n in nodes])
         self.db.executemany(
             "INSERT INTO nodes (id,kind,name,state,content,labels,anchor,meta,path,span_hash,"
             "created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?) "
@@ -207,12 +226,7 @@ class Store:
                 )
 
     def _sync_fts(self, nodes: Iterable[Node]) -> None:
-        """Keep FTS in step with nodes, idempotently.
-
-        FTS5 has no upsert, and `node_id` is UNINDEXED so deleting by it
-        full-scans the whole index. Key the FTS row to the node's rowid in the
-        nodes table instead: deletion is then a rowid lookup, not a scan.
-        """
+        """Add postings after old postings have been removed."""
         node_list = list(nodes)
         if not node_list:
             return
@@ -228,19 +242,26 @@ class Store:
         # lowercases, so an indexed credential is a *queryable* credential.
         # Its name still reaches search via the nodes table.
         payload = [
-            (
-                rowids[n.id],
-                n.id,
-                n.name,
-                n.content[:FTS_CONTENT_CHARS] if n.kind.is_structural else n.content,
-            )
+            (rowids[n.id], n.name,
+             n.content[:FTS_CONTENT_CHARS] if n.kind.is_structural else n.content)
             for n in node_list
             if n.id in rowids and SECRET_LABEL not in n.labels
         ]
-        stale_rowids = [(rowids[n.id],) for n in node_list if n.id in rowids]
-        self.db.executemany("DELETE FROM fts WHERE rowid=?", stale_rowids)
         self.db.executemany(
-            "INSERT INTO fts (rowid, node_id, name, content) VALUES (?,?,?,?)", payload
+            "INSERT INTO fts (rowid, name, content) VALUES (?,?,?)", payload
+        )
+
+    def _delete_fts_by_ids(self, ids: list[str]) -> None:
+        if not ids:
+            return
+        marks = ",".join("?" * len(ids))
+        rows = self.db.execute(
+            f"SELECT rowid AS rid,kind,name,content,labels FROM nodes WHERE id IN ({marks})",
+            ids,
+        )
+        self.db.executemany(
+            "INSERT INTO fts(fts,rowid,name,content) VALUES ('delete',?,?,?)",
+            (_fts_payload(r) for r in rows if SECRET_LABEL not in json.loads(r["labels"])),
         )
 
     def upsert_edges(self, edges: Iterable[Edge]) -> int:
@@ -261,7 +282,7 @@ class Store:
         of the graph (SPEC-context-graph §1) and outlive the code they describe.
         """
         rows = self.db.execute(
-            "SELECT rowid AS rid, id FROM nodes WHERE path=? "
+            "SELECT rowid AS rid,id,kind,name,content,labels FROM nodes WHERE path=? "
             "AND kind IN ('file','symbol','test','module')",
             (path,),
         ).fetchall()
@@ -270,7 +291,7 @@ class Store:
         ids = [r["id"] for r in rows]
         marks = ",".join("?" * len(ids))
         self.db.execute(f"DELETE FROM edges WHERE src IN ({marks}) OR dst IN ({marks})", ids * 2)
-        self.db.executemany("DELETE FROM fts WHERE rowid=?", [(r["rid"],) for r in rows])
+        self._delete_fts_by_ids(ids)
         self.db.execute(f"DELETE FROM nodes WHERE id IN ({marks})", ids)
         self.db.execute(f"DELETE FROM node_embeddings WHERE node_id IN ({marks})", ids)
         return len(ids)
@@ -298,6 +319,27 @@ class Store:
             f"UPDATE nodes SET state=? WHERE id IN ({marks})", [state.value, *ids]
         )
         return cur.rowcount
+
+    def move_anchored_facts(self, old: Anchor, new: Anchor) -> int:
+        """Follow an unambiguous symbol rename without changing a fact's origin."""
+        rows = self.db.execute(
+            "SELECT id, anchor FROM nodes WHERE path=? AND span_hash=? "
+            "AND kind NOT IN ('file','symbol','test','module')",
+            (old.path, old.span_hash),
+        ).fetchall()
+        moved = 0
+        for row in rows:
+            anchor = json.loads(row["anchor"])
+            if anchor.get("symbol") != old.symbol:
+                continue
+            anchor.update(path=new.path, symbol=new.symbol, span_hash=new.span_hash)
+            anchor.pop("file_hash", None)
+            self.db.execute(
+                "UPDATE nodes SET anchor=?, path=?, span_hash=? WHERE id=?",
+                (json.dumps(anchor), new.path, new.span_hash, row["id"]),
+            )
+            moved += 1
+        return moved
 
     def set_meta(self, key: str, value: Any) -> None:
         self.db.execute(
@@ -349,7 +391,7 @@ class Store:
     def search_text(self, query: str, limit: int = 20) -> list[tuple[Node, float]]:
         """FTS5 lookup. Exact symbol search must never depend on an embedding."""
         rows = self.db.execute(
-            "SELECT n.*, bm25(fts) AS score FROM fts JOIN nodes n ON n.id = fts.node_id "
+            "SELECT n.*, bm25(fts) AS score FROM fts JOIN nodes n ON n.rowid = fts.rowid "
             "WHERE fts MATCH ? ORDER BY score LIMIT ?",
             (query, limit),
         ).fetchall()
@@ -424,3 +466,9 @@ def _row_to_node(row: sqlite3.Row) -> Node:
         created_at=row["created_at"],
         updated_at=row["updated_at"],
     )
+
+
+def _fts_payload(row: sqlite3.Row) -> tuple[int, str, str]:
+    kind = NodeKind(row["kind"])
+    content = row["content"][:FTS_CONTENT_CHARS] if kind.is_structural else row["content"]
+    return row["rid"], row["name"], content

@@ -191,12 +191,15 @@ rather than ambient API keys.
 
 ## 7. Milestones
 
-**M0 (planning) is complete. Nothing else is started.**
+**M0 and M1 are complete.** Retrieval and MCP are available experimentally;
+the M2 evaluation gate remains open. [ROADMAP.md](./ROADMAP.md) has the current
+implementation checklist and [M1 results](./results/m1-index-2026-09-25.md)
+record the index exit demo.
 
 | M | Theme | Exit demo |
 |---|-------|-----------|
 | **M0** ✅ | Planning | This docs set |
-| **M1** | Graph + index | `mog index` on a 50k-LOC repo in under 60s; `mog search` returns anchored results |
+| **M1** ✅ | Graph + index | `mog index` on a 50k-LOC repo in under 60s; `mog search` returns anchored results |
 | **M2** | Retrieval + zoom | Seed-and-spread beats the chunk-RAG baseline on the eval harness |
 | **M3** | MCP server | Claude Code uses `search_context` and `why` in a real session |
 | **M4** | Ledger + working set | Eviction-and-recall demonstrably survives a context reset that compaction does not |

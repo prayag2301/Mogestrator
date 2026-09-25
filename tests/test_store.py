@@ -71,7 +71,7 @@ def test_set_state_marks_stale(store):
 
 
 def test_schema_version_recorded(store):
-    assert store.db.execute("PRAGMA user_version").fetchone()[0] == 2
+    assert store.db.execute("PRAGMA user_version").fetchone()[0] == 3
 
 
 def test_fts_does_not_duplicate_on_reupsert(store):
@@ -80,5 +80,43 @@ def test_fts_does_not_duplicate_on_reupsert(store):
     with store.transaction():
         store.upsert_nodes([n])
         store.upsert_nodes([n])
-    rows = store.db.execute("SELECT count(*) c FROM fts WHERE node_id=?", (n.id,)).fetchone()["c"]
+    rows = store.db.execute(
+        "SELECT count(*) c FROM fts WHERE rowid=(SELECT rowid FROM nodes WHERE id=?)", (n.id,)
+    ).fetchone()["c"]
     assert rows == 1
+
+
+def test_contentless_fts_removes_old_terms_on_update(store):
+    n = _sym("verify_token")
+    with store.transaction():
+        store.upsert_nodes([n])
+        n.content = "def verify_token(): return changed_term"
+        store.upsert_nodes([n])
+    assert store.search_text("changed_term")[0][0].id == n.id
+    assert store.search_text("pass") == []
+
+
+def test_v2_fts_migration_preserves_search_and_memory(tmp_path):
+    import sqlite3
+
+    from mog.graph.store import Store
+
+    db = tmp_path / "old.db"
+    old = Store(db)
+    symbol = _sym("verify_token")
+    memory = Node(kind=NodeKind.DECISION, name="chosen", content="keep this fact")
+    with old.transaction():
+        old.upsert_nodes([symbol, memory])
+    old.close()
+    conn = sqlite3.connect(db)
+    conn.execute("DROP TABLE fts")
+    conn.execute("CREATE VIRTUAL TABLE fts USING fts5(node_id UNINDEXED,name,content)")
+    conn.execute("PRAGMA user_version=2")
+    conn.commit()
+    conn.close()
+
+    upgraded = Store(db)
+    assert upgraded.get_node(memory.id).content == "keep this fact"
+    assert upgraded.search_text("verify_token")[0][0].id == symbol.id
+    assert upgraded.search_text("chosen")[0][0].id == memory.id
+    upgraded.close()

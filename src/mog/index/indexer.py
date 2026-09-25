@@ -10,11 +10,12 @@ import time
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from mog.graph.anchors import file_hash, span_hash
+from mog.graph.anchors import body_hash, file_hash, span_hash
 from mog.graph.models import Anchor, Edge, EdgeKind, Node, NodeKind, State
 from mog.graph.store import Store
 from mog.index.parsers.base import LangSpec, Symbol, extract, spec_for_path
 from mog.index.parsers.languages import get_parser
+from mog.index.relationships import co_change_edges, git_history_marker, import_edges
 from mog.index.sensitivity import SECRET, classify
 from mog.index.walker import DEFAULT_EXCLUDES, MAX_FILE_BYTES, discover
 
@@ -76,9 +77,21 @@ class Indexer:
         stats = IndexStats()
         # Older indexes did not persist call sites; rebuild once on upgrade or
         # when the ingest policy changes, even if file bytes are unchanged.
-        policy = {"format": 2, "allow_secret_content": list(self.allow_secret_content)}
+        policy = {"format": 3, "allow_secret_content": list(self.allow_secret_content)}
         refresh = self.store.get_meta("index_policy") != policy
         known = {} if full else self.store.known_files()
+        old_symbols: list[Node] | None = None
+
+        def remember_symbols() -> None:
+            nonlocal old_symbols
+            if old_symbols is None:
+                old_symbols = (
+                    [n for n in self.store.find_nodes(limit=-1)
+                     if n.kind in (NodeKind.SYMBOL, NodeKind.TEST) and n.meta.get("body_hash")]
+                    if not full else []
+                )
+        history_marker = git_history_marker(self.root)
+        history_changed = history_marker != self.store.get_meta("git_history_marker")
         seen: set[str] = set()
         # (qualname, path) -> node id, for cross-file call resolution.
         symbol_index: dict[str, list[str]] = {}
@@ -104,6 +117,7 @@ class Indexer:
                     stats.files_skipped += 1
                     continue
 
+                remember_symbols()
                 self.store.delete_file_nodes(rel)
                 labels = classify(rel, source, self.allow_secret_content)
                 spec = None if SECRET in labels else spec_for_path(rel)
@@ -122,6 +136,7 @@ class Indexer:
                     stats.languages[lang] = stats.languages.get(lang, 0) + 1
 
             for path in set(known) - seen:
+                remember_symbols()
                 self.store.forget_file(path)
                 stats.files_removed += 1
 
@@ -139,10 +154,18 @@ class Indexer:
                         pending_tests.append((node.id, node.name))
                 stats.edges += self._resolve_calls(pending_calls, symbol_index)
                 stats.edges += self._link_tests(pending_tests, symbol_index)
+                stats.edges += self._link_imports()
+                self._continue_renames(old_symbols or [])
+            if stats.files_indexed or stats.files_removed or full or history_changed:
+                self.store.db.execute("DELETE FROM edges WHERE kind='co_changed'")
+                symbols = [n for n in self.store.find_nodes(limit=-1)
+                           if n.kind in (NodeKind.SYMBOL, NodeKind.TEST)]
+                stats.edges += self.store.upsert_edges(co_change_edges(self.root, symbols))
             stats.stale_marked = self._mark_stale_facts()
             self.store.set_meta("last_indexed_at", time.time())
             self.store.set_meta("root", str(self.root))
             self.store.set_meta("index_policy", policy)
+            self.store.set_meta("git_history_marker", history_marker)
 
         stats.duration = time.time() - started
         return stats
@@ -201,6 +224,7 @@ class Indexer:
                 meta={
                     "symbol_kind": sym.kind,
                     "qualname": sym.qualname,
+                    "body_hash": body_hash(sym.node, source),
                     "calls": sorted(set(sym.calls)),
                     "end_line": sym.node.end_point[0] + 1,
                     "signature": body.split("\n", 1)[0][:200],
@@ -248,6 +272,38 @@ class Indexer:
                     )
                 )
         return self.store.upsert_edges(edges)
+
+    def _link_imports(self) -> int:
+        self.store.db.execute("DELETE FROM edges WHERE kind='imports'")
+        files = self.store.find_nodes(kind=NodeKind.FILE, limit=-1)
+        languages = {r["path"]: r["language"] for r in self.store.db.execute(
+            "SELECT path, language FROM files"
+        )}
+        return self.store.upsert_edges(import_edges(files, languages))
+
+    def _continue_renames(self, previous: list[Node]) -> None:
+        from collections import defaultdict
+
+        old_by_hash: dict[str, list[Node]] = defaultdict(list)
+        new_by_hash: dict[str, list[Node]] = defaultdict(list)
+        for node in previous:
+            old_by_hash[node.meta["body_hash"]].append(node)
+        for node in self.store.find_nodes(limit=-1):
+            if node.kind in (NodeKind.SYMBOL, NodeKind.TEST) and node.meta.get("body_hash"):
+                new_by_hash[node.meta["body_hash"]].append(node)
+        current_locations = {(n.path, n.meta.get("qualname"))
+                             for nodes in new_by_hash.values() for n in nodes}
+        for digest, old_nodes in old_by_hash.items():
+            new_nodes = new_by_hash.get(digest, [])
+            if len(old_nodes) != 1 or len(new_nodes) != 1:
+                continue
+            old, new = old_nodes[0], new_nodes[0]
+            if (old.path, old.meta.get("qualname")) == (new.path, new.meta.get("qualname")):
+                continue
+            if (old.path, old.meta.get("qualname")) in current_locations:
+                continue  # copied declaration, not a rename
+            if old.anchor and new.anchor:
+                self.store.move_anchored_facts(old.anchor, new.anchor)
 
     def _link_tests(self, tests: list[tuple[str, str]], index: dict[str, list[str]]) -> int:
         """``test_verify_token`` -> ``verify_token``, when that symbol exists."""

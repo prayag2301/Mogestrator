@@ -180,8 +180,10 @@ figures are in [ARCHITECTURE.md](docs/ARCHITECTURE.md); they do not describe the
 latency or index size of this new retrieval implementation.
 
 [ROADMAP.md](docs/ROADMAP.md) tracks the remaining work: evaluation gates,
-scalable vectors, imports/co-change links, rename continuity, complete working-set
-management, and the policy gateway. See [PLAN.md](docs/PLAN.md),
+scalable vectors, complete working-set management, and the policy gateway.
+M1 indexing, import/co-change links, rename continuity, and the revised size
+target are complete; see the [pinned benchmark](docs/results/m1-index-2026-09-25.md).
+See [PLAN.md](docs/PLAN.md),
 [SPEC-context-graph.md](docs/SPEC-context-graph.md),
 [SPEC-config.md](docs/SPEC-config.md), and [DISTRIBUTION.md](docs/DISTRIBUTION.md).
 

@@ -5,14 +5,14 @@ Sequencing, not dates. Every milestone ends in a demo a stranger can reproduce.
 | M | Theme | Exit demo |
 |---|-------|-----------|
 | **M0** ✅ | Planning | This docs set |
-| **M1** | Graph + index | `mog index` a 50k-LOC repo < 60s; `mog search` returns anchored results |
+| **M1** ✅ | Graph + index | `mog index` a 50k-LOC repo < 60s; `mog search` returns anchored results |
 | **M2** | Retrieval + zoom | Seed-and-spread beats chunk-RAG (B1) and `rg` (B0) on the harness |
 | **M3** | MCP server | Claude Code uses `search_context` / `why` in a real session |
 | **M4** | Ledger + working set | Eviction-and-recall survives a reset that compaction (B3) does not |
 | **M5** | Policy plane | Gateway blocks scripted exfiltration; audit names the rule |
 | **M6** | Distribution | `uvx mogestrator` green on macOS/Linux/Windows |
 
-## M1 — Graph and index  *(in progress)*
+## M1 — Graph and index  *(complete; measured on pinned Django checkout)*
 - [x] SQLite schema + migrations; FTS5 wired; `sqlite-vec` probed with graceful
       degradation when extensions cannot load (**Q2 resolved**, ADR-0007)
 - [x] tree-sitter parsers: Python, TypeScript, Go, Rust — spec-driven, so a new
@@ -26,11 +26,12 @@ Sequencing, not dates. Every milestone ends in a demo a stranger can reproduce.
       confinement, secret content never stored or indexed (ADR-0008) — moved
       forward from M5, because the store cannot precede its own labelling
 - [x] Index, retrieval, memory, embedding-cache, and real MCP protocol tests
-- [ ] `imports` edges (parsed and stored on the file node, not yet linked)
-- [ ] Git miner for `co_changed`
+- [x] Conservative `imports` file links for local Python/TypeScript/Go/Rust modules
+- [x] Bounded Git miner for recurring `co_changed` symbol pairs
 - [x] Optional local BGE embedder + model/content-hash cache (ADR-0009)
-- [ ] Rename continuity via body-hash matching
-- [ ] Close the index-size gap (ADR-0007)
+- [x] Unique body-hash matching carries anchored facts through symbol/file renames
+- [x] Close the index-size gap: contentless FTS and v3 migration; 369% of source
+      on pinned Django, under ADR-0007's revised 400% target
 
 ## M2 — Retrieval *(experimental in 0.2.0a1; quality gate open)*
 - [x] Exact/FTS5 and optional exact-cosine semantic seeding

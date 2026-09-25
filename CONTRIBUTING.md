@@ -1,7 +1,7 @@
 # Contributing
 
-> The project is in **M1**: indexing and inspection work; experimental retrieval and MCP
-> integration are available; the M2 evidence gate remains open. Read the roadmap for the current scope.
+> **M1 is complete.** Experimental retrieval and MCP integration are available;
+> the M2 evidence gate remains open. Read the roadmap for the current scope.
 
 ## Read first
 
@@ -14,7 +14,7 @@
 
 ## Where to start
 
-The M1 checklist in [docs/ROADMAP.md](docs/ROADMAP.md) is the work queue. Take a
+The open checklist in [docs/ROADMAP.md](docs/ROADMAP.md) is the work queue. Take a
 box, open an issue naming it, keep the PR scoped to it.
 
 ## Ground rules
