@@ -36,8 +36,8 @@ box, open an issue naming it, keep the PR scoped to it.
 ## Dev setup
 
 ```bash
-git clone https://github.com/prayag2301/mogestrator.git
-cd mogestrator
+git clone https://github.com/prayag2301/Mogestrator.git
+cd Mogestrator
 uv venv && source .venv/bin/activate
 uv pip install -e ".[mcp]" pytest pytest-asyncio ruff
 ruff check src tests scripts

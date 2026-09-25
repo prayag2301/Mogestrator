@@ -32,10 +32,10 @@
 | 8 | **npm/npx** | `npx @mogestrator/cli init` | JS/TS teams with no Python | P1 |
 | 9 | **Docker** | `docker run --rm -v $PWD:/w ghcr.io/…/mog run x` | hermetic CI, no host install | P1 |
 | 10 | **GitHub Action** | `uses: prayag2301/mogestrator-action@v1` | CI workflows | P1 |
-| 11 | **Claude Code plugin** | `/plugin marketplace add prayag2301/mogestrator` | Claude Code users — slash commands wrapping `mog` | P2 |
+| 11 | **Claude Code plugin** | `/plugin marketplace add prayag2301/Mogestrator` | Claude Code users — slash commands wrapping `mog` | P2 |
 | 12 | **MCP server** | `mog serve --mcp` | expose the context graph as tools to any MCP client | P2 |
 | 13 | **mise / asdf** | `mise use mogestrator@latest` | polyglot version-manager users | P2 |
-| 14 | **Nix flake** | `nix run github:prayag2301/mogestrator` | Nix users | P3 |
+| 14 | **Nix flake** | `nix run github:prayag2301/Mogestrator` | Nix users | P3 |
 | 15 | **VS Code extension** | Marketplace: *Mogestrator* | GUI run/sync surface | P3 |
 | 16 | **Scoop / WinGet** | `scoop install mog` | Windows package managers | P3 |
 
@@ -64,7 +64,7 @@ At <https://pypi.org/manage/project/mogestrator/settings/publishing/>, configure
 | Field | Value |
 |-------|-------|
 | Owner | `prayag2301` |
-| Repository | `mogestrator` |
+| Repository | `Mogestrator` |
 | Workflow filename | `release.yml` |
 | Environment | `pypi` |
 
