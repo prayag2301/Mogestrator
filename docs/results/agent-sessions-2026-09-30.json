@@ -1,0 +1,338 @@
+{
+ "date": "2026-09-30",
+ "mogestrator_version": "0.2.0a2 (commit 0a5ddce)",
+ "agent_model": "claude-opus-5-5 (general-purpose subagents)",
+ "project": "private Python repository, ~1.7k LOC, withheld",
+ "scope": "Paired A/B of agent sessions, n=2 per arm, 7 prompts over 2 sessions. Not an M2 or M4 gate result.",
+ "metrics_note": "tokens_processed = sum over API calls of (input + cache_creation + cache_read) tokens; new_input = uncached input + cache writes; tool_result_chars = characters returned by tools; wall_s = first prompt to last assistant message in the segment.",
+ "per_prompt": {
+  "baseline-1": {
+   "P1": {
+    "tokens_processed": 94466,
+    "new_input": 33959,
+    "api_calls": 3,
+    "tool_calls": 3,
+    "mog_calls": 0,
+    "tool_result_chars": 8488,
+    "wall_s": 14.2
+   },
+   "P2": {
+    "tokens_processed": 106220,
+    "new_input": 2271,
+    "api_calls": 3,
+    "tool_calls": 3,
+    "mog_calls": 0,
+    "tool_result_chars": 2567,
+    "wall_s": 20.3
+   },
+   "P3": {
+    "tokens_processed": 118297,
+    "new_input": 4557,
+    "api_calls": 3,
+    "tool_calls": 3,
+    "mog_calls": 0,
+    "tool_result_chars": 4776,
+    "wall_s": 15.6
+   },
+   "P4": {
+    "tokens_processed": 277014,
+    "new_input": 8544,
+    "api_calls": 6,
+    "tool_calls": 6,
+    "mog_calls": 0,
+    "tool_result_chars": 11053,
+    "wall_s": 47.3
+   },
+   "P5": {
+    "tokens_processed": 152804,
+    "new_input": 2760,
+    "api_calls": 3,
+    "tool_calls": 3,
+    "mog_calls": 0,
+    "tool_result_chars": 602,
+    "wall_s": 24.1
+   },
+   "P6": {
+    "tokens_processed": 170402,
+    "new_input": 21364,
+    "api_calls": 5,
+    "tool_calls": 5,
+    "mog_calls": 0,
+    "tool_result_chars": 14165,
+    "wall_s": 41.2
+   },
+   "P7": {
+    "tokens_processed": 81780,
+    "new_input": 3252,
+    "api_calls": 2,
+    "tool_calls": 2,
+    "mog_calls": 0,
+    "tool_result_chars": 3959,
+    "wall_s": 23.1
+   }
+  },
+  "baseline-2": {
+   "P1": {
+    "tokens_processed": 94379,
+    "new_input": 34014,
+    "api_calls": 3,
+    "tool_calls": 3,
+    "mog_calls": 0,
+    "tool_result_chars": 8610,
+    "wall_s": 13.1
+   },
+   "P2": {
+    "tokens_processed": 108002,
+    "new_input": 3271,
+    "api_calls": 3,
+    "tool_calls": 3,
+    "mog_calls": 0,
+    "tool_result_chars": 4662,
+    "wall_s": 19.3
+   },
+   "P3": {
+    "tokens_processed": 121101,
+    "new_input": 4610,
+    "api_calls": 3,
+    "tool_calls": 3,
+    "mog_calls": 0,
+    "tool_result_chars": 4844,
+    "wall_s": 18.7
+   },
+   "P4": {
+    "tokens_processed": 196536,
+    "new_input": 12566,
+    "api_calls": 4,
+    "tool_calls": 4,
+    "mog_calls": 0,
+    "tool_result_chars": 20560,
+    "wall_s": 51.5
+   },
+   "P5": {
+    "tokens_processed": 113543,
+    "new_input": 3329,
+    "api_calls": 2,
+    "tool_calls": 2,
+    "mog_calls": 0,
+    "tool_result_chars": 99,
+    "wall_s": 27.5
+   },
+   "P6": {
+    "tokens_processed": 245627,
+    "new_input": 22912,
+    "api_calls": 7,
+    "tool_calls": 7,
+    "mog_calls": 0,
+    "tool_result_chars": 14435,
+    "wall_s": 53.1
+   },
+   "P7": {
+    "tokens_processed": 127184,
+    "new_input": 3237,
+    "api_calls": 3,
+    "tool_calls": 3,
+    "mog_calls": 0,
+    "tool_result_chars": 1401,
+    "wall_s": 22.1
+   }
+  },
+  "mogestrator-1": {
+   "P1": {
+    "tokens_processed": 123714,
+    "new_input": 33428,
+    "api_calls": 4,
+    "tool_calls": 4,
+    "mog_calls": 1,
+    "tool_result_chars": 7444,
+    "wall_s": 15.2
+   },
+   "P2": {
+    "tokens_processed": 144366,
+    "new_input": 4813,
+    "api_calls": 4,
+    "tool_calls": 4,
+    "mog_calls": 1,
+    "tool_result_chars": 6327,
+    "wall_s": 26.9
+   },
+   "P3": {
+    "tokens_processed": 166289,
+    "new_input": 5035,
+    "api_calls": 4,
+    "tool_calls": 4,
+    "mog_calls": 1,
+    "tool_result_chars": 5111,
+    "wall_s": 24.0
+   },
+   "P4": {
+    "tokens_processed": 249147,
+    "new_input": 10051,
+    "api_calls": 5,
+    "tool_calls": 6,
+    "mog_calls": 0,
+    "tool_result_chars": 14192,
+    "wall_s": 48.7
+   },
+   "P5": {
+    "tokens_processed": 112710,
+    "new_input": 4992,
+    "api_calls": 2,
+    "tool_calls": 2,
+    "mog_calls": 1,
+    "tool_result_chars": 5621,
+    "wall_s": 21.6
+   },
+   "P6": {
+    "tokens_processed": 327445,
+    "new_input": 25069,
+    "api_calls": 9,
+    "tool_calls": 9,
+    "mog_calls": 2,
+    "tool_result_chars": 17265,
+    "wall_s": 62.2
+   },
+   "P7": {
+    "tokens_processed": 187543,
+    "new_input": 7583,
+    "api_calls": 4,
+    "tool_calls": 4,
+    "mog_calls": 3,
+    "tool_result_chars": 11398,
+    "wall_s": 36.3
+   }
+  },
+  "mogestrator-2": {
+   "P1": {
+    "tokens_processed": 188657,
+    "new_input": 33484,
+    "api_calls": 6,
+    "tool_calls": 6,
+    "mog_calls": 1,
+    "tool_result_chars": 6096,
+    "wall_s": 22.6
+   },
+   "P2": {
+    "tokens_processed": 143682,
+    "new_input": 4192,
+    "api_calls": 4,
+    "tool_calls": 4,
+    "mog_calls": 1,
+    "tool_result_chars": 6001,
+    "wall_s": 26.6
+   },
+   "P3": {
+    "tokens_processed": 122870,
+    "new_input": 4729,
+    "api_calls": 3,
+    "tool_calls": 3,
+    "mog_calls": 1,
+    "tool_result_chars": 4918,
+    "wall_s": 16.7
+   },
+   "P4": {
+    "tokens_processed": 239152,
+    "new_input": 8825,
+    "api_calls": 5,
+    "tool_calls": 5,
+    "mog_calls": 1,
+    "tool_result_chars": 12753,
+    "wall_s": 39.9
+   },
+   "P5": {
+    "tokens_processed": 107434,
+    "new_input": 4178,
+    "api_calls": 2,
+    "tool_calls": 2,
+    "mog_calls": 1,
+    "tool_result_chars": 4737,
+    "wall_s": 17.9
+   },
+   "P6": {
+    "tokens_processed": 246804,
+    "new_input": 23898,
+    "api_calls": 7,
+    "tool_calls": 7,
+    "mog_calls": 2,
+    "tool_result_chars": 15761,
+    "wall_s": 55.0
+   },
+   "P7": {
+    "tokens_processed": 233546,
+    "new_input": 9557,
+    "api_calls": 5,
+    "tool_calls": 5,
+    "mog_calls": 4,
+    "tool_result_chars": 15841,
+    "wall_s": 38.2
+   }
+  }
+ },
+ "hidden_acceptance_checks": {
+  "baseline-1": {
+   "passed": 13,
+   "total": 13,
+   "session1_passed_before_handoff": true
+  },
+  "baseline-2": {
+   "passed": 13,
+   "total": 13,
+   "session1_passed_before_handoff": true
+  },
+  "mogestrator-1": {
+   "passed": 13,
+   "total": 13,
+   "session1_passed_before_handoff": true
+  },
+  "mogestrator-2": {
+   "passed": 13,
+   "total": 13,
+   "session1_passed_before_handoff": true
+  }
+ },
+ "retrieval_harness": {
+  "lexical": {
+   "cases": 14,
+   "recall_at_5": 0.6429,
+   "median_latency_ms": 149.6,
+   "median_context_bytes_upper_bound": 15958,
+   "per_case_recall_at_5": [
+    1.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    1.0,
+    1.0,
+    0.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0
+   ]
+  },
+  "semantic": {
+   "cases": 14,
+   "recall_at_5": 0.9286,
+   "median_latency_ms": 173.6,
+   "median_context_bytes_upper_bound": 15836,
+   "per_case_recall_at_5": [
+    1.0,
+    1.0,
+    1.0,
+    0.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0
+   ]
+  }
+ }
+}

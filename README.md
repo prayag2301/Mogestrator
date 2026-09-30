@@ -165,6 +165,32 @@ provenance, not a complete prompt-injection defense; the policy gateway remains
 planned. Credential detection is heuristic, not a guarantee of detecting every
 secret.
 
+## Agent-session evaluation
+
+A paired A/B test ran agent sessions on a private Python project (~1.7k LOC; name
+and code withheld), two runs per arm. Both arms used the same model and the same
+7 prompts across two sessions with a hard reset between them. Between the
+sessions a simulated teammate commit invalidated a fact that session 1 had
+recorded. Baseline agents had normal tools. Mogestrator agents also had a project
+skill that uses `mog` for session-start drift checks, search, impact and memory.
+
+| Mean per arm | Baseline | Mogestrator | Δ |
+|---|---|---|---|
+| Task success (13 hidden checks + graded answers) | 100% | 100% | — |
+| Tokens processed, all 7 prompts | 1.00M | 1.30M | **+29%** |
+| Tokens processed, post-reset session | 312k | 498k | +59% |
+| Tool calls | 25 | 32.5 | +30% |
+| Wall time | 196 s | 226 s | +15% |
+| Stale memory auto-flagged after teammate change | n/a | 1 of 2 | — |
+
+**Result: no improvement on this project.** Quality was tied at the ceiling,
+and Mogestrator added overhead. Drift labelling caught the stale fact only
+when the memory was anchored to the symbol that changed. Memories can't be retired,
+so the agents appended corrections instead. On the same project the retrieval
+harness scores recall@5 of 0.64 (lexical) and 0.93 (semantic). Methodology,
+per-prompt data and follow-ups are in
+[docs/results/agent-sessions-2026-09-30.md](docs/results/agent-sessions-2026-09-30.md).
+
 ## Validation and remaining work
 
 CI tests installed packages on macOS, Linux, and Windows with Python 3.11/3.13.
