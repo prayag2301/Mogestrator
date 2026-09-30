@@ -1,0 +1,1127 @@
+{
+ "date": "2026-09-30",
+ "mogestrator_version": "0.2.0a2",
+ "agent": "claude -p (Claude Code 2.1.285), claude-opus-5-5",
+ "project": "private Python repository, ~1.7k LOC, withheld",
+ "metrics_note": "cost_usd = Claude Code total_cost_usd per prompt; tokens_processed = input + cache_read + cache_creation; values are mean/min/max across runs",
+ "expA_long_sequence": {
+  "base": {
+   "S1 (P1-P5)": {
+    "cost_usd": {
+     "mean": 2.236,
+     "min": 2.093,
+     "max": 2.4,
+     "n": 4
+    },
+    "tokens_processed": {
+     "mean": 811143,
+     "min": 771641,
+     "max": 880834,
+     "n": 4
+    },
+    "tool_calls": {
+     "mean": 33,
+     "min": 27,
+     "max": 40,
+     "n": 4
+    },
+    "mog_calls": {
+     "mean": 0,
+     "min": 0,
+     "max": 0,
+     "n": 4
+    },
+    "git_history_calls": {
+     "mean": 0,
+     "min": 0,
+     "max": 0,
+     "n": 4
+    },
+    "wall_s": {
+     "mean": 148.5,
+     "min": 146.3,
+     "max": 152.3,
+     "n": 4
+    }
+   },
+   "S2 (P6-P8)": {
+    "cost_usd": {
+     "mean": 3.022,
+     "min": 2.786,
+     "max": 3.184,
+     "n": 4
+    },
+    "tokens_processed": {
+     "mean": 791396.25,
+     "min": 658685,
+     "max": 866574,
+     "n": 4
+    },
+    "tool_calls": {
+     "mean": 24.75,
+     "min": 21,
+     "max": 30,
+     "n": 4
+    },
+    "mog_calls": {
+     "mean": 0,
+     "min": 0,
+     "max": 0,
+     "n": 4
+    },
+    "git_history_calls": {
+     "mean": 1,
+     "min": 1,
+     "max": 1,
+     "n": 4
+    },
+    "wall_s": {
+     "mean": 157.5,
+     "min": 149.7,
+     "max": 167.0,
+     "n": 4
+    }
+   },
+   "S3 (P9-P10)": {
+    "cost_usd": {
+     "mean": 0.61,
+     "min": 0.51,
+     "max": 0.747,
+     "n": 4
+    },
+    "tokens_processed": {
+     "mean": 352061.5,
+     "min": 247318,
+     "max": 491684,
+     "n": 4
+    },
+    "tool_calls": {
+     "mean": 12.75,
+     "min": 9,
+     "max": 17,
+     "n": 4
+    },
+    "mog_calls": {
+     "mean": 0,
+     "min": 0,
+     "max": 0,
+     "n": 4
+    },
+    "git_history_calls": {
+     "mean": 2.75,
+     "min": 2,
+     "max": 4,
+     "n": 4
+    },
+    "wall_s": {
+     "mean": 64.0,
+     "min": 52.1,
+     "max": 80.7,
+     "n": 4
+    }
+   },
+   "all": {
+    "cost_usd": {
+     "mean": 5.868,
+     "min": 5.751,
+     "max": 5.956,
+     "n": 4
+    },
+    "tokens_processed": {
+     "mean": 1954600.75,
+     "min": 1823237,
+     "max": 2082269,
+     "n": 4
+    },
+    "tool_calls": {
+     "mean": 70.5,
+     "min": 63,
+     "max": 77,
+     "n": 4
+    },
+    "mog_calls": {
+     "mean": 0,
+     "min": 0,
+     "max": 0,
+     "n": 4
+    },
+    "git_history_calls": {
+     "mean": 3.75,
+     "min": 3,
+     "max": 5,
+     "n": 4
+    },
+    "wall_s": {
+     "mean": 370.0,
+     "min": 358.2,
+     "max": 381.5,
+     "n": 4
+    }
+   },
+   "per_prompt_cost": {
+    "P1": {
+     "mean": 0.156,
+     "min": 0.147,
+     "max": 0.178,
+     "n": 4
+    },
+    "P2": {
+     "mean": 0.254,
+     "min": 0.221,
+     "max": 0.308,
+     "n": 4
+    },
+    "P3": {
+     "mean": 0.393,
+     "min": 0.352,
+     "max": 0.433,
+     "n": 4
+    },
+    "P4": {
+     "mean": 0.648,
+     "min": 0.621,
+     "max": 0.676,
+     "n": 4
+    },
+    "P5": {
+     "mean": 0.786,
+     "min": 0.75,
+     "max": 0.805,
+     "n": 4
+    },
+    "P6": {
+     "mean": 0.412,
+     "min": 0.394,
+     "max": 0.449,
+     "n": 4
+    },
+    "P7": {
+     "mean": 1.474,
+     "min": 1.343,
+     "max": 1.567,
+     "n": 4
+    },
+    "P8": {
+     "mean": 1.136,
+     "min": 1.048,
+     "max": 1.168,
+     "n": 4
+    },
+    "P9": {
+     "mean": 0.216,
+     "min": 0.182,
+     "max": 0.247,
+     "n": 4
+    },
+    "P10": {
+     "mean": 0.394,
+     "min": 0.328,
+     "max": 0.501,
+     "n": 4
+    }
+   },
+   "checks": [
+    {
+     "passed": 20,
+     "total": 20,
+     "failed": []
+    },
+    {
+     "passed": 20,
+     "total": 20,
+     "failed": []
+    },
+    {
+     "passed": 20,
+     "total": 20,
+     "failed": []
+    },
+    {
+     "passed": 20,
+     "total": 20,
+     "failed": []
+    }
+   ]
+  },
+  "mog": {
+   "S1 (P1-P5)": {
+    "cost_usd": {
+     "mean": 2.007,
+     "min": 1.916,
+     "max": 2.191,
+     "n": 4
+    },
+    "tokens_processed": {
+     "mean": 724426.25,
+     "min": 674101,
+     "max": 796903,
+     "n": 4
+    },
+    "tool_calls": {
+     "mean": 21.75,
+     "min": 17,
+     "max": 26,
+     "n": 4
+    },
+    "mog_calls": {
+     "mean": 5.75,
+     "min": 5,
+     "max": 7,
+     "n": 4
+    },
+    "git_history_calls": {
+     "mean": 0,
+     "min": 0,
+     "max": 0,
+     "n": 4
+    },
+    "wall_s": {
+     "mean": 137.075,
+     "min": 132.5,
+     "max": 141.3,
+     "n": 4
+    }
+   },
+   "S2 (P6-P8)": {
+    "cost_usd": {
+     "mean": 2.714,
+     "min": 2.507,
+     "max": 3.014,
+     "n": 4
+    },
+    "tokens_processed": {
+     "mean": 827889.5,
+     "min": 747714,
+     "max": 915851,
+     "n": 4
+    },
+    "tool_calls": {
+     "mean": 21.25,
+     "min": 18,
+     "max": 24,
+     "n": 4
+    },
+    "mog_calls": {
+     "mean": 8.75,
+     "min": 6,
+     "max": 11,
+     "n": 4
+    },
+    "git_history_calls": {
+     "mean": 2.5,
+     "min": 2,
+     "max": 3,
+     "n": 4
+    },
+    "wall_s": {
+     "mean": 150.0,
+     "min": 142.2,
+     "max": 166.0,
+     "n": 4
+    }
+   },
+   "S3 (P9-P10)": {
+    "cost_usd": {
+     "mean": 0.66,
+     "min": 0.59,
+     "max": 0.739,
+     "n": 4
+    },
+    "tokens_processed": {
+     "mean": 474325.5,
+     "min": 364842,
+     "max": 575249,
+     "n": 4
+    },
+    "tool_calls": {
+     "mean": 14.75,
+     "min": 12,
+     "max": 18,
+     "n": 4
+    },
+    "mog_calls": {
+     "mean": 7.5,
+     "min": 6,
+     "max": 9,
+     "n": 4
+    },
+    "git_history_calls": {
+     "mean": 2.75,
+     "min": 2,
+     "max": 3,
+     "n": 4
+    },
+    "wall_s": {
+     "mean": 78.825,
+     "min": 74.4,
+     "max": 86.3,
+     "n": 4
+    }
+   },
+   "all": {
+    "cost_usd": {
+     "mean": 5.381,
+     "min": 5.044,
+     "max": 5.92,
+     "n": 4
+    },
+    "tokens_processed": {
+     "mean": 2026641.25,
+     "min": 1874860,
+     "max": 2276996,
+     "n": 4
+    },
+    "tool_calls": {
+     "mean": 57.75,
+     "min": 52,
+     "max": 68,
+     "n": 4
+    },
+    "mog_calls": {
+     "mean": 22,
+     "min": 21,
+     "max": 24,
+     "n": 4
+    },
+    "git_history_calls": {
+     "mean": 5.25,
+     "min": 5,
+     "max": 6,
+     "n": 4
+    },
+    "wall_s": {
+     "mean": 365.9,
+     "min": 351.6,
+     "max": 383.9,
+     "n": 4
+    }
+   },
+   "per_prompt_cost": {
+    "P1": {
+     "mean": 0.152,
+     "min": 0.135,
+     "max": 0.181,
+     "n": 4
+    },
+    "P2": {
+     "mean": 0.233,
+     "min": 0.213,
+     "max": 0.264,
+     "n": 4
+    },
+    "P3": {
+     "mean": 0.353,
+     "min": 0.332,
+     "max": 0.395,
+     "n": 4
+    },
+    "P4": {
+     "mean": 0.574,
+     "min": 0.552,
+     "max": 0.613,
+     "n": 4
+    },
+    "P5": {
+     "mean": 0.694,
+     "min": 0.671,
+     "max": 0.738,
+     "n": 4
+    },
+    "P6": {
+     "mean": 0.339,
+     "min": 0.294,
+     "max": 0.378,
+     "n": 4
+    },
+    "P7": {
+     "mean": 1.311,
+     "min": 1.17,
+     "max": 1.457,
+     "n": 4
+    },
+    "P8": {
+     "mean": 1.064,
+     "min": 1.009,
+     "max": 1.179,
+     "n": 4
+    },
+    "P9": {
+     "mean": 0.226,
+     "min": 0.201,
+     "max": 0.259,
+     "n": 4
+    },
+    "P10": {
+     "mean": 0.434,
+     "min": 0.378,
+     "max": 0.488,
+     "n": 4
+    }
+   },
+   "checks": [
+    {
+     "passed": 19,
+     "total": 19,
+     "failed": []
+    },
+    {
+     "passed": 20,
+     "total": 20,
+     "failed": []
+    },
+    {
+     "passed": 20,
+     "total": 20,
+     "failed": []
+    },
+    {
+     "passed": 20,
+     "total": 20,
+     "failed": []
+    }
+   ]
+  }
+ },
+ "expB_stale_notes": {
+  "base-none": {
+   "total": {
+    "cost_usd": {
+     "mean": 1.397,
+     "min": 1.245,
+     "max": 1.701,
+     "n": 3
+    },
+    "tokens_processed": {
+     "mean": 506876.667,
+     "min": 437862,
+     "max": 562611,
+     "n": 3
+    },
+    "tool_calls": {
+     "mean": 13.667,
+     "min": 12,
+     "max": 16,
+     "n": 3
+    },
+    "mog_calls": {
+     "mean": 0,
+     "min": 0,
+     "max": 0,
+     "n": 3
+    },
+    "git_history_calls": {
+     "mean": 1,
+     "min": 0,
+     "max": 2,
+     "n": 3
+    },
+    "wall_s": {
+     "mean": 96.867,
+     "min": 86.6,
+     "max": 111.8,
+     "n": 3
+    }
+   },
+   "per_task": {
+    "B1": {
+     "cost_usd": {
+      "mean": 0.204,
+      "min": 0.173,
+      "max": 0.265,
+      "n": 3
+     },
+     "tokens_processed": {
+      "mean": 111776.333,
+      "min": 95215,
+      "max": 120698,
+      "n": 3
+     },
+     "tool_calls": {
+      "mean": 3.667,
+      "min": 3,
+      "max": 4,
+      "n": 3
+     },
+     "wall_s": {
+      "mean": 16.767,
+      "min": 15.6,
+      "max": 18.8,
+      "n": 3
+     }
+    },
+    "B2": {
+     "cost_usd": {
+      "mean": 0.276,
+      "min": 0.241,
+      "max": 0.346,
+      "n": 3
+     },
+     "tokens_processed": {
+      "mean": 92284,
+      "min": 81296,
+      "max": 112906,
+      "n": 3
+     },
+     "tool_calls": {
+      "mean": 2.667,
+      "min": 2,
+      "max": 3,
+      "n": 3
+     },
+     "wall_s": {
+      "mean": 16.833,
+      "min": 15.9,
+      "max": 18.4,
+      "n": 3
+     }
+    },
+    "B3": {
+     "cost_usd": {
+      "mean": 0.355,
+      "min": 0.314,
+      "max": 0.424,
+      "n": 3
+     },
+     "tokens_processed": {
+      "mean": 124345.667,
+      "min": 121170,
+      "max": 127858,
+      "n": 3
+     },
+     "tool_calls": {
+      "mean": 3,
+      "min": 3,
+      "max": 3,
+      "n": 3
+     },
+     "wall_s": {
+      "mean": 15.1,
+      "min": 14.4,
+      "max": 16.2,
+      "n": 3
+     }
+    },
+    "B4": {
+     "cost_usd": {
+      "mean": 0.562,
+      "min": 0.504,
+      "max": 0.666,
+      "n": 3
+     },
+     "tokens_processed": {
+      "mean": 178470.667,
+      "min": 113141,
+      "max": 221122,
+      "n": 3
+     },
+     "tool_calls": {
+      "mean": 4.333,
+      "min": 2,
+      "max": 6,
+      "n": 3
+     },
+     "wall_s": {
+      "mean": 48.167,
+      "min": 40.1,
+      "max": 59.9,
+      "n": 3
+     }
+    }
+   },
+   "checks": [
+    {
+     "passed": 12,
+     "misled": []
+    },
+    {
+     "passed": 12,
+     "misled": []
+    },
+    {
+     "passed": 12,
+     "misled": []
+    }
+   ]
+  },
+  "base-stale": {
+   "total": {
+    "cost_usd": {
+     "mean": 2.22,
+     "min": 2.048,
+     "max": 2.358,
+     "n": 3
+    },
+    "tokens_processed": {
+     "mean": 869045,
+     "min": 738284,
+     "max": 953285,
+     "n": 3
+    },
+    "tool_calls": {
+     "mean": 33,
+     "min": 27,
+     "max": 36,
+     "n": 3
+    },
+    "mog_calls": {
+     "mean": 0,
+     "min": 0,
+     "max": 0,
+     "n": 3
+    },
+    "git_history_calls": {
+     "mean": 1.333,
+     "min": 0,
+     "max": 3,
+     "n": 3
+    },
+    "wall_s": {
+     "mean": 130.4,
+     "min": 121.9,
+     "max": 143.2,
+     "n": 3
+    }
+   },
+   "per_task": {
+    "B1": {
+     "cost_usd": {
+      "mean": 0.33,
+      "min": 0.319,
+      "max": 0.346,
+      "n": 3
+     },
+     "tokens_processed": {
+      "mean": 200821,
+      "min": 180681,
+      "max": 238139,
+      "n": 3
+     },
+     "tool_calls": {
+      "mean": 11.333,
+      "min": 11,
+      "max": 12,
+      "n": 3
+     },
+     "wall_s": {
+      "mean": 30.867,
+      "min": 28.8,
+      "max": 34.3,
+      "n": 3
+     }
+    },
+    "B2": {
+     "cost_usd": {
+      "mean": 0.485,
+      "min": 0.421,
+      "max": 0.524,
+      "n": 3
+     },
+     "tokens_processed": {
+      "mean": 219276.667,
+      "min": 123695,
+      "max": 298287,
+      "n": 3
+     },
+     "tool_calls": {
+      "mean": 10,
+      "min": 5,
+      "max": 14,
+      "n": 3
+     },
+     "wall_s": {
+      "mean": 30.2,
+      "min": 20.3,
+      "max": 35.8,
+      "n": 3
+     }
+    },
+    "B3": {
+     "cost_usd": {
+      "mean": 0.587,
+      "min": 0.528,
+      "max": 0.618,
+      "n": 3
+     },
+     "tokens_processed": {
+      "mean": 189629,
+      "min": 159108,
+      "max": 212495,
+      "n": 3
+     },
+     "tool_calls": {
+      "mean": 4.333,
+      "min": 3,
+      "max": 5,
+      "n": 3
+     },
+     "wall_s": {
+      "mean": 17.5,
+      "min": 15.4,
+      "max": 20.4,
+      "n": 3
+     }
+    },
+    "B4": {
+     "cost_usd": {
+      "mean": 0.817,
+      "min": 0.773,
+      "max": 0.869,
+      "n": 3
+     },
+     "tokens_processed": {
+      "mean": 259318.333,
+      "min": 218451,
+      "max": 282471,
+      "n": 3
+     },
+     "tool_calls": {
+      "mean": 7.333,
+      "min": 6,
+      "max": 10,
+      "n": 3
+     },
+     "wall_s": {
+      "mean": 51.833,
+      "min": 39.9,
+      "max": 59.0,
+      "n": 3
+     }
+    }
+   },
+   "checks": [
+    {
+     "passed": 12,
+     "misled": []
+    },
+    {
+     "passed": 12,
+     "misled": []
+    },
+    {
+     "passed": 12,
+     "misled": []
+    }
+   ]
+  },
+  "mog-none": {
+   "total": {
+    "cost_usd": {
+     "mean": 2.167,
+     "min": 1.995,
+     "max": 2.35,
+     "n": 3
+    },
+    "tokens_processed": {
+     "mean": 1038099.333,
+     "min": 846542,
+     "max": 1142152,
+     "n": 3
+    },
+    "tool_calls": {
+     "mean": 31,
+     "min": 25,
+     "max": 38,
+     "n": 3
+    },
+    "mog_calls": {
+     "mean": 7.333,
+     "min": 5,
+     "max": 9,
+     "n": 3
+    },
+    "git_history_calls": {
+     "mean": 2.333,
+     "min": 2,
+     "max": 3,
+     "n": 3
+    },
+    "wall_s": {
+     "mean": 144.6,
+     "min": 130.7,
+     "max": 151.8,
+     "n": 3
+    }
+   },
+   "per_task": {
+    "B1": {
+     "cost_usd": {
+      "mean": 0.332,
+      "min": 0.31,
+      "max": 0.368,
+      "n": 3
+     },
+     "tokens_processed": {
+      "mean": 262414.667,
+      "min": 221129,
+      "max": 315943,
+      "n": 3
+     },
+     "tool_calls": {
+      "mean": 11,
+      "min": 9,
+      "max": 14,
+      "n": 3
+     },
+     "wall_s": {
+      "mean": 34.2,
+      "min": 28.3,
+      "max": 38.2,
+      "n": 3
+     }
+    },
+    "B2": {
+     "cost_usd": {
+      "mean": 0.445,
+      "min": 0.423,
+      "max": 0.481,
+      "n": 3
+     },
+     "tokens_processed": {
+      "mean": 189808,
+      "min": 155793,
+      "max": 214906,
+      "n": 3
+     },
+     "tool_calls": {
+      "mean": 6,
+      "min": 5,
+      "max": 7,
+      "n": 3
+     },
+     "wall_s": {
+      "mean": 23.333,
+      "min": 22.6,
+      "max": 24.4,
+      "n": 3
+     }
+    },
+    "B3": {
+     "cost_usd": {
+      "mean": 0.535,
+      "min": 0.506,
+      "max": 0.589,
+      "n": 3
+     },
+     "tokens_processed": {
+      "mean": 154172.667,
+      "min": 138314,
+      "max": 184821,
+      "n": 3
+     },
+     "tool_calls": {
+      "mean": 3.667,
+      "min": 3,
+      "max": 5,
+      "n": 3
+     },
+     "wall_s": {
+      "mean": 19.9,
+      "min": 15.3,
+      "max": 24.1,
+      "n": 3
+     }
+    },
+    "B4": {
+     "cost_usd": {
+      "mean": 0.855,
+      "min": 0.748,
+      "max": 0.912,
+      "n": 3
+     },
+     "tokens_processed": {
+      "mean": 431704,
+      "min": 301194,
+      "max": 567803,
+      "n": 3
+     },
+     "tool_calls": {
+      "mean": 10.333,
+      "min": 7,
+      "max": 12,
+      "n": 3
+     },
+     "wall_s": {
+      "mean": 67.167,
+      "min": 51.3,
+      "max": 83.8,
+      "n": 3
+     }
+    }
+   },
+   "checks": [
+    {
+     "passed": 12,
+     "misled": []
+    },
+    {
+     "passed": 12,
+     "misled": []
+    },
+    {
+     "passed": 12,
+     "misled": []
+    }
+   ]
+  },
+  "mog-stale": {
+   "total": {
+    "cost_usd": {
+     "mean": 1.893,
+     "min": 1.845,
+     "max": 1.956,
+     "n": 3
+    },
+    "tokens_processed": {
+     "mean": 764204.333,
+     "min": 746321,
+     "max": 773359,
+     "n": 3
+    },
+    "tool_calls": {
+     "mean": 24,
+     "min": 23,
+     "max": 26,
+     "n": 3
+    },
+    "mog_calls": {
+     "mean": 5.667,
+     "min": 4,
+     "max": 7,
+     "n": 3
+    },
+    "git_history_calls": {
+     "mean": 2,
+     "min": 1,
+     "max": 3,
+     "n": 3
+    },
+    "wall_s": {
+     "mean": 123.467,
+     "min": 121.6,
+     "max": 126.3,
+     "n": 3
+    }
+   },
+   "per_task": {
+    "B1": {
+     "cost_usd": {
+      "mean": 0.296,
+      "min": 0.288,
+      "max": 0.305,
+      "n": 3
+     },
+     "tokens_processed": {
+      "mean": 194774.333,
+      "min": 192345,
+      "max": 197038,
+      "n": 3
+     },
+     "tool_calls": {
+      "mean": 7.667,
+      "min": 7,
+      "max": 8,
+      "n": 3
+     },
+     "wall_s": {
+      "mean": 28.333,
+      "min": 26.2,
+      "max": 30.7,
+      "n": 3
+     }
+    },
+    "B2": {
+     "cost_usd": {
+      "mean": 0.39,
+      "min": 0.375,
+      "max": 0.397,
+      "n": 3
+     },
+     "tokens_processed": {
+      "mean": 156362,
+      "min": 143586,
+      "max": 176770,
+      "n": 3
+     },
+     "tool_calls": {
+      "mean": 5.667,
+      "min": 5,
+      "max": 6,
+      "n": 3
+     },
+     "wall_s": {
+      "mean": 21.433,
+      "min": 19.3,
+      "max": 24.8,
+      "n": 3
+     }
+    },
+    "B3": {
+     "cost_usd": {
+      "mean": 0.485,
+      "min": 0.468,
+      "max": 0.509,
+      "n": 3
+     },
+     "tokens_processed": {
+      "mean": 154876.333,
+      "min": 131953,
+      "max": 171606,
+      "n": 3
+     },
+     "tool_calls": {
+      "mean": 4.333,
+      "min": 4,
+      "max": 5,
+      "n": 3
+     },
+     "wall_s": {
+      "mean": 19.967,
+      "min": 17.1,
+      "max": 23.6,
+      "n": 3
+     }
+    },
+    "B4": {
+     "cost_usd": {
+      "mean": 0.722,
+      "min": 0.708,
+      "max": 0.745,
+      "n": 3
+     },
+     "tokens_processed": {
+      "mean": 258191.667,
+      "min": 242658,
+      "max": 276358,
+      "n": 3
+     },
+     "tool_calls": {
+      "mean": 6.333,
+      "min": 5,
+      "max": 7,
+      "n": 3
+     },
+     "wall_s": {
+      "mean": 53.733,
+      "min": 49.9,
+      "max": 56.9,
+      "n": 3
+     }
+    }
+   },
+   "checks": [
+    {
+     "passed": 12,
+     "misled": []
+    },
+    {
+     "passed": 12,
+     "misled": []
+    },
+    {
+     "passed": 12,
+     "misled": []
+    }
+   ]
+  }
+ }
+}

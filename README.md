@@ -167,29 +167,44 @@ secret.
 
 ## Agent-session evaluation
 
-A paired A/B test ran agent sessions on a private Python project (~1.7k LOC; name
-and code withheld), two runs per arm. Both arms used the same model and the same
-7 prompts across two sessions with a hard reset between them. Between the
-sessions a simulated teammate commit invalidated a fact that session 1 had
-recorded. Baseline agents had normal tools. Mogestrator agents also had a project
-skill that uses `mog` for session-start drift checks, search, impact and memory.
+Mogestrator was tested against plain Claude Code on a private Python project
+(~1.7k LOC; name and code withheld). Each prompt ran as a headless Claude Code
+session in an OS sandbox, and hidden acceptance checks the agents never saw
+scored the work. Total spend was $68.
 
-| Mean per arm | Baseline | Mogestrator | Δ |
-|---|---|---|---|
-| Task success (13 hidden checks + graded answers) | 100% | 100% | — |
-| Tokens processed, all 7 prompts | 1.00M | 1.30M | **+29%** |
-| Tokens processed, post-reset session | 312k | 498k | +59% |
-| Tool calls | 25 | 32.5 | +30% |
-| Wall time | 196 s | 226 s | +15% |
-| Stale memory auto-flagged after teammate change | n/a | 1 of 2 | — |
+**Exp A** covers a long task sequence: 4 runs per arm, 10 prompts, 3 sessions,
+with 2 teammate commits between sessions.
 
-**Result: no improvement on this project.** Quality was tied at the ceiling,
-and Mogestrator added overhead. Drift labelling caught the stale fact only
-when the memory was anchored to the symbol that changed. Memories can't be retired,
-so the agents appended corrections instead. On the same project the retrieval
-harness scores recall@5 of 0.64 (lexical) and 0.93 (semantic). Methodology,
-per-prompt data and follow-ups are in
-[docs/results/agent-sessions-2026-09-30.md](docs/results/agent-sessions-2026-09-30.md).
+| Mean of 4 runs | Baseline | Mogestrator |
+|---|---|---|
+| Hidden checks passed | 100% | 100% |
+| Cost | $5.87 (5.75–5.96) | $5.38 (5.04–5.92), −8% |
+| Tokens processed | 1.95M | 2.03M, +4% |
+| Tool calls | 70.5 | 57.8, −18% |
+
+**Exp B** tests stale notes: 3 runs per cell. Seven notes from a "previous session"
+are seeded, four of which later commits have made wrong. Each of the 4 tasks is
+built so that trusting a wrong note gives silently wrong output.
+
+| Mean cost of 4 tasks | No notes | Stale notes |
+|---|---|---|
+| Baseline (`CLAUDE.md`) | $1.40 | $2.22 (+59%) |
+| Mogestrator (`mog` memories) | $2.17 | $1.89 (−13%) |
+
+**Results:**
+- **Correctness:** Mogestrator changed nothing; every run in every cell passed.
+- **Long sequences:** no measurable difference, since the cost ranges overlap.
+- **Stale notes:** they never led the model to wrong code. They made the baseline
+  59% more expensive, because the agent re-verified every note against the code and git.
+- **Drift labels:** Mogestrator labelled 3 of the 4 wrong memories stale up front.
+  With stale notes that made it 15% cheaper than baseline. With nothing to recall,
+  its session ritual made it 55% more expensive.
+- **Blind spot:** when a file moved, rename tracking re-anchored a memory and
+  labelled it fresh, although its text still named the old path.
+
+Details: [v2 write-up](docs/results/agent-sessions-v2-2026-09-30.md) and the
+[v1 pilot](docs/results/agent-sessions-2026-09-30.md). The pilot used in-session
+subagents with n=2 and measured +29% tokens.
 
 ## Validation and remaining work
 
