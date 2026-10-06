@@ -1,0 +1,577 @@
+{
+  "date": "2026-10-06",
+  "target_seconds": 1200,
+  "agent": "codex-cli 0.160.0",
+  "model": "gpt-6.1-sol",
+  "reasoning_effort": "high",
+  "n_per_arm": 1,
+  "started_at_utc": "2026-10-06T08:39:57Z",
+  "mog_commit": "0a559e7c77ca36fdab69ca4e10db800dfcd35b28",
+  "elapsed_seconds": 1532.7819351250073,
+  "project": "private Python repository, approximately 1.7k LOC; name and code withheld",
+  "completed": true,
+  "cost_usd": null,
+  "prompts_per_arm": 10,
+  "token_note": "Codex turn.completed usage is cumulative within a resumed thread. Per-prompt values are differences from that thread's previous result. input_tokens includes cached_input_tokens; cache and reasoning counts are subsets and are not added again. Dollar cost is unavailable.",
+  "arms": {
+    "base": {
+      "all_tasks": {
+        "wall_seconds": 706.139,
+        "input_tokens": 1733252,
+        "cached_input_tokens": 1562496,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 25053,
+        "reasoning_output_tokens": 5003,
+        "command_calls": 56,
+        "file_change_calls": 10,
+        "mog_command_calls": 0
+      },
+      "original_10_tasks": {
+        "wall_seconds": 706.139,
+        "input_tokens": 1733252,
+        "cached_input_tokens": 1562496,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 25053,
+        "reasoning_output_tokens": 5003,
+        "command_calls": 56,
+        "file_change_calls": 10,
+        "mog_command_calls": 0
+      },
+      "per_prompt": [
+        {
+          "task": "P1",
+          "wall_seconds": 21.42223974998342,
+          "input_tokens": 68052,
+          "cached_input_tokens": 61568,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 479,
+          "reasoning_output_tokens": 32,
+          "command_calls": 4,
+          "file_change_calls": 0,
+          "mog_command_calls": 0,
+          "session": 1,
+          "reported_session_usage": {
+            "input_tokens": 68052,
+            "cached_input_tokens": 61568,
+            "cache_write_input_tokens": 0,
+            "output_tokens": 479,
+            "reasoning_output_tokens": 32
+          }
+        },
+        {
+          "task": "P2",
+          "wall_seconds": 39.70198850001907,
+          "input_tokens": 115357,
+          "cached_input_tokens": 83840,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 1361,
+          "reasoning_output_tokens": 282,
+          "command_calls": 5,
+          "file_change_calls": 0,
+          "mog_command_calls": 0,
+          "session": 1,
+          "reported_session_usage": {
+            "input_tokens": 183409,
+            "cached_input_tokens": 145408,
+            "cache_write_input_tokens": 0,
+            "output_tokens": 1840,
+            "reasoning_output_tokens": 314
+          }
+        },
+        {
+          "task": "P3",
+          "wall_seconds": 72.83656445803354,
+          "input_tokens": 257770,
+          "cached_input_tokens": 247936,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 2403,
+          "reasoning_output_tokens": 601,
+          "command_calls": 6,
+          "file_change_calls": 1,
+          "mog_command_calls": 0,
+          "session": 1,
+          "reported_session_usage": {
+            "input_tokens": 441179,
+            "cached_input_tokens": 393344,
+            "cache_write_input_tokens": 0,
+            "output_tokens": 4243,
+            "reasoning_output_tokens": 915
+          }
+        },
+        {
+          "task": "P4",
+          "wall_seconds": 76.65262141695712,
+          "input_tokens": 207042,
+          "cached_input_tokens": 197504,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 2863,
+          "reasoning_output_tokens": 792,
+          "command_calls": 4,
+          "file_change_calls": 1,
+          "mog_command_calls": 0,
+          "session": 1,
+          "reported_session_usage": {
+            "input_tokens": 648221,
+            "cached_input_tokens": 590848,
+            "cache_write_input_tokens": 0,
+            "output_tokens": 7106,
+            "reasoning_output_tokens": 1707
+          }
+        },
+        {
+          "task": "P5",
+          "wall_seconds": 66.29986654198729,
+          "input_tokens": 239536,
+          "cached_input_tokens": 231680,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 2321,
+          "reasoning_output_tokens": 272,
+          "command_calls": 3,
+          "file_change_calls": 1,
+          "mog_command_calls": 0,
+          "session": 1,
+          "reported_session_usage": {
+            "input_tokens": 887757,
+            "cached_input_tokens": 822528,
+            "cache_write_input_tokens": 0,
+            "output_tokens": 9427,
+            "reasoning_output_tokens": 1979
+          }
+        },
+        {
+          "task": "P6",
+          "wall_seconds": 125.72854370804271,
+          "input_tokens": 173739,
+          "cached_input_tokens": 131584,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 4853,
+          "reasoning_output_tokens": 832,
+          "command_calls": 11,
+          "file_change_calls": 3,
+          "mog_command_calls": 0,
+          "session": 2,
+          "reported_session_usage": {
+            "input_tokens": 173739,
+            "cached_input_tokens": 131584,
+            "cache_write_input_tokens": 0,
+            "output_tokens": 4853,
+            "reasoning_output_tokens": 832
+          }
+        },
+        {
+          "task": "P7",
+          "wall_seconds": 114.31801183300558,
+          "input_tokens": 214008,
+          "cached_input_tokens": 196352,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 4088,
+          "reasoning_output_tokens": 1015,
+          "command_calls": 6,
+          "file_change_calls": 2,
+          "mog_command_calls": 0,
+          "session": 2,
+          "reported_session_usage": {
+            "input_tokens": 387747,
+            "cached_input_tokens": 327936,
+            "cache_write_input_tokens": 0,
+            "output_tokens": 8941,
+            "reasoning_output_tokens": 1847
+          }
+        },
+        {
+          "task": "P8",
+          "wall_seconds": 63.57264991599368,
+          "input_tokens": 152086,
+          "cached_input_tokens": 145792,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 2277,
+          "reasoning_output_tokens": 307,
+          "command_calls": 4,
+          "file_change_calls": 0,
+          "mog_command_calls": 0,
+          "session": 2,
+          "reported_session_usage": {
+            "input_tokens": 539833,
+            "cached_input_tokens": 473728,
+            "cache_write_input_tokens": 0,
+            "output_tokens": 11218,
+            "reasoning_output_tokens": 2154
+          }
+        },
+        {
+          "task": "P9",
+          "wall_seconds": 48.92723691702122,
+          "input_tokens": 146026,
+          "cached_input_tokens": 123776,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 1553,
+          "reasoning_output_tokens": 284,
+          "command_calls": 7,
+          "file_change_calls": 1,
+          "mog_command_calls": 0,
+          "session": 3,
+          "reported_session_usage": {
+            "input_tokens": 146026,
+            "cached_input_tokens": 123776,
+            "cache_write_input_tokens": 0,
+            "output_tokens": 1553,
+            "reasoning_output_tokens": 284
+          }
+        },
+        {
+          "task": "P10",
+          "wall_seconds": 76.67887679202249,
+          "input_tokens": 159636,
+          "cached_input_tokens": 142464,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 2855,
+          "reasoning_output_tokens": 586,
+          "command_calls": 6,
+          "file_change_calls": 1,
+          "mog_command_calls": 0,
+          "session": 3,
+          "reported_session_usage": {
+            "input_tokens": 305662,
+            "cached_input_tokens": 266240,
+            "cache_write_input_tokens": 0,
+            "output_tokens": 4408,
+            "reasoning_output_tokens": 870
+          }
+        }
+      ],
+      "hidden_checks": {
+        "P3_below_exits_1": null,
+        "P3_zero_exits_0": true,
+        "P3_invalid_rejected": true,
+        "P4_registered": true,
+        "P4_echo_not_compromised": true,
+        "P4_compromised_detected": true,
+        "P4_category_and_reference": true,
+        "P4_readme_moved": true,
+        "P6_zero_exits_0": true,
+        "P6_below_exits_1": true,
+        "P6_repeatable": true,
+        "P6_unknown_rejected": true,
+        "P6_malformed_rejected": true,
+        "P7_registered": true,
+        "P7_echo_not_compromised": true,
+        "P7_compromised_detected": true,
+        "P7_category_and_reference": true,
+        "P7_readme_moved": true,
+        "P9_summarize": true,
+        "P9_summarize_names_only": true,
+        "suite_passes": true,
+        "G_overall_failure_exits_1": true,
+        "G_overall_report_preserved": true,
+        "G_category_failure_exits_1": true,
+        "G_category_report_preserved": true
+      },
+      "original_checks": {
+        "passed": 20,
+        "total": 20
+      },
+      "extension_checks": {
+        "passed": 0,
+        "total": 0
+      },
+      "guard_checks": {
+        "passed": 4,
+        "total": 4
+      },
+      "all_checks": {
+        "passed": 24,
+        "total": 24,
+        "failed": [],
+        "not_applicable": [
+          "P3_below_exits_1"
+        ]
+      },
+      "localization_parts_correct": 3,
+      "rename_impact_claimed_18_files": true,
+      "audit_mentions_scoring_change": true,
+      "audit_mentions_schema_change": true,
+      "suite_summary": "107 passed in 0.27s",
+      "recoverable_mog_path_failures": 0
+    },
+    "mog": {
+      "all_tasks": {
+        "wall_seconds": 826.015,
+        "input_tokens": 2586158,
+        "cached_input_tokens": 2370048,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 27425,
+        "reasoning_output_tokens": 5110,
+        "command_calls": 161,
+        "file_change_calls": 9,
+        "mog_command_calls": 104
+      },
+      "original_10_tasks": {
+        "wall_seconds": 826.015,
+        "input_tokens": 2586158,
+        "cached_input_tokens": 2370048,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 27425,
+        "reasoning_output_tokens": 5110,
+        "command_calls": 161,
+        "file_change_calls": 9,
+        "mog_command_calls": 104
+      },
+      "per_prompt": [
+        {
+          "task": "P1",
+          "wall_seconds": 33.213918875029776,
+          "input_tokens": 119788,
+          "cached_input_tokens": 109824,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 697,
+          "reasoning_output_tokens": 38,
+          "command_calls": 13,
+          "file_change_calls": 0,
+          "mog_command_calls": 9,
+          "session": 1,
+          "reported_session_usage": {
+            "input_tokens": 119788,
+            "cached_input_tokens": 109824,
+            "cache_write_input_tokens": 0,
+            "output_tokens": 697,
+            "reasoning_output_tokens": 38
+          }
+        },
+        {
+          "task": "P2",
+          "wall_seconds": 43.9580378329847,
+          "input_tokens": 143899,
+          "cached_input_tokens": 129024,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 1310,
+          "reasoning_output_tokens": 161,
+          "command_calls": 10,
+          "file_change_calls": 0,
+          "mog_command_calls": 6,
+          "session": 1,
+          "reported_session_usage": {
+            "input_tokens": 263687,
+            "cached_input_tokens": 238848,
+            "cache_write_input_tokens": 0,
+            "output_tokens": 2007,
+            "reasoning_output_tokens": 199
+          }
+        },
+        {
+          "task": "P3",
+          "wall_seconds": 68.4962386660045,
+          "input_tokens": 206007,
+          "cached_input_tokens": 194304,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 2284,
+          "reasoning_output_tokens": 484,
+          "command_calls": 9,
+          "file_change_calls": 2,
+          "mog_command_calls": 5,
+          "session": 1,
+          "reported_session_usage": {
+            "input_tokens": 469694,
+            "cached_input_tokens": 433152,
+            "cache_write_input_tokens": 0,
+            "output_tokens": 4291,
+            "reasoning_output_tokens": 683
+          }
+        },
+        {
+          "task": "P4",
+          "wall_seconds": 105.67221345799044,
+          "input_tokens": 393348,
+          "cached_input_tokens": 375808,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 3690,
+          "reasoning_output_tokens": 692,
+          "command_calls": 14,
+          "file_change_calls": 1,
+          "mog_command_calls": 9,
+          "session": 1,
+          "reported_session_usage": {
+            "input_tokens": 863042,
+            "cached_input_tokens": 808960,
+            "cache_write_input_tokens": 0,
+            "output_tokens": 7981,
+            "reasoning_output_tokens": 1375
+          }
+        },
+        {
+          "task": "P5",
+          "wall_seconds": 46.31821212498471,
+          "input_tokens": 194745,
+          "cached_input_tokens": 188544,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 1404,
+          "reasoning_output_tokens": 179,
+          "command_calls": 12,
+          "file_change_calls": 0,
+          "mog_command_calls": 10,
+          "session": 1,
+          "reported_session_usage": {
+            "input_tokens": 1057787,
+            "cached_input_tokens": 997504,
+            "cache_write_input_tokens": 0,
+            "output_tokens": 9385,
+            "reasoning_output_tokens": 1554
+          }
+        },
+        {
+          "task": "P6",
+          "wall_seconds": 152.45499099994777,
+          "input_tokens": 320372,
+          "cached_input_tokens": 275968,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 5031,
+          "reasoning_output_tokens": 890,
+          "command_calls": 28,
+          "file_change_calls": 4,
+          "mog_command_calls": 14,
+          "session": 2,
+          "reported_session_usage": {
+            "input_tokens": 320372,
+            "cached_input_tokens": 275968,
+            "cache_write_input_tokens": 0,
+            "output_tokens": 5031,
+            "reasoning_output_tokens": 890
+          }
+        },
+        {
+          "task": "P7",
+          "wall_seconds": 120.98646724998252,
+          "input_tokens": 271754,
+          "cached_input_tokens": 245248,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 4352,
+          "reasoning_output_tokens": 1260,
+          "command_calls": 15,
+          "file_change_calls": 1,
+          "mog_command_calls": 9,
+          "session": 2,
+          "reported_session_usage": {
+            "input_tokens": 592126,
+            "cached_input_tokens": 521216,
+            "cache_write_input_tokens": 0,
+            "output_tokens": 9383,
+            "reasoning_output_tokens": 2150
+          }
+        },
+        {
+          "task": "P8",
+          "wall_seconds": 85.84765558299841,
+          "input_tokens": 371470,
+          "cached_input_tokens": 351232,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 2859,
+          "reasoning_output_tokens": 673,
+          "command_calls": 12,
+          "file_change_calls": 0,
+          "mog_command_calls": 9,
+          "session": 2,
+          "reported_session_usage": {
+            "input_tokens": 963596,
+            "cached_input_tokens": 872448,
+            "cache_write_input_tokens": 0,
+            "output_tokens": 12242,
+            "reasoning_output_tokens": 2823
+          }
+        },
+        {
+          "task": "P9",
+          "wall_seconds": 63.30369645904284,
+          "input_tokens": 221565,
+          "cached_input_tokens": 198016,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 2074,
+          "reasoning_output_tokens": 136,
+          "command_calls": 27,
+          "file_change_calls": 1,
+          "mog_command_calls": 20,
+          "session": 3,
+          "reported_session_usage": {
+            "input_tokens": 221565,
+            "cached_input_tokens": 198016,
+            "cache_write_input_tokens": 0,
+            "output_tokens": 2074,
+            "reasoning_output_tokens": 136
+          }
+        },
+        {
+          "task": "P10",
+          "wall_seconds": 105.7639725409681,
+          "input_tokens": 343210,
+          "cached_input_tokens": 302080,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 3724,
+          "reasoning_output_tokens": 597,
+          "command_calls": 21,
+          "file_change_calls": 0,
+          "mog_command_calls": 13,
+          "session": 3,
+          "reported_session_usage": {
+            "input_tokens": 564775,
+            "cached_input_tokens": 500096,
+            "cache_write_input_tokens": 0,
+            "output_tokens": 5798,
+            "reasoning_output_tokens": 733
+          }
+        }
+      ],
+      "hidden_checks": {
+        "P3_below_exits_1": null,
+        "P3_zero_exits_0": true,
+        "P3_invalid_rejected": true,
+        "P4_registered": true,
+        "P4_echo_not_compromised": true,
+        "P4_compromised_detected": true,
+        "P4_category_and_reference": true,
+        "P4_readme_moved": true,
+        "P6_zero_exits_0": true,
+        "P6_below_exits_1": null,
+        "P6_repeatable": true,
+        "P6_unknown_rejected": true,
+        "P6_malformed_rejected": true,
+        "P7_registered": true,
+        "P7_echo_not_compromised": true,
+        "P7_compromised_detected": true,
+        "P7_category_and_reference": true,
+        "P7_readme_moved": true,
+        "P9_summarize": true,
+        "P9_summarize_names_only": true,
+        "suite_passes": true,
+        "G_overall_failure_exits_1": true,
+        "G_overall_report_preserved": true,
+        "G_category_failure_exits_1": true,
+        "G_category_report_preserved": true
+      },
+      "original_checks": {
+        "passed": 19,
+        "total": 19
+      },
+      "extension_checks": {
+        "passed": 0,
+        "total": 0
+      },
+      "guard_checks": {
+        "passed": 4,
+        "total": 4
+      },
+      "all_checks": {
+        "passed": 23,
+        "total": 23,
+        "failed": [],
+        "not_applicable": [
+          "P3_below_exits_1",
+          "P6_below_exits_1"
+        ]
+      },
+      "localization_parts_correct": 3,
+      "rename_impact_claimed_18_files": true,
+      "audit_mentions_scoring_change": true,
+      "audit_mentions_schema_change": true,
+      "suite_summary": "80 passed in 0.29s",
+      "recoverable_mog_path_failures": 11
+    }
+  }
+}

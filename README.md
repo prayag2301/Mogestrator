@@ -167,6 +167,8 @@ secret.
 
 ## Agent-session evaluation
 
+### Claude Code — 2026-09-30
+
 Mogestrator was tested against plain Claude Code on a private Python project
 (~1.7k LOC; name and code withheld). Each prompt ran as a headless Claude Code
 session in an OS sandbox, and hidden acceptance checks the agents never saw
@@ -205,6 +207,35 @@ built so that trusting a wrong note gives silently wrong output.
 Details: [v2 write-up](docs/results/agent-sessions-v2-2026-09-30.md) and the
 [v1 pilot](docs/results/agent-sessions-2026-09-30.md). The pilot used in-session
 subagents with n=2 and measured +29% tokens.
+
+### Codex follow-up and long-sequence comparison — 2026-10-06
+
+The new Codex experiment targeted 20 minutes total and completed in **25 min 33 s**:
+one run per arm, the same ten substantive prompts, three sessions, and two teammate
+commits. Both arms passed every applicable hidden acceptance check.
+
+| Ten-prompt sequence | Claude baseline (n=4) | Claude + Mog (n=4) | Codex baseline (n=1) | Codex + Mog (n=1) |
+|---|---:|---:|---:|---:|
+| Hidden checks passed | 80/80 | 79/79 (1 n/a) | 20/20 (1 n/a) | 19/19 (2 n/a) |
+| Input tokens, including cache hits | 1,954,601 | 2,026,641 | 1,733,252 | 2,586,158 |
+| Prompt wall time | 370.0 s | 365.9 s | 706.1 s | 826.0 s |
+| Reported cost | $5.87 | $5.38 | Not reported | Not reported |
+
+Four additional gate-failure checks per Codex arm also passed, covering the
+failure paths skipped by the legacy grader when the echo adapter scores 100%.
+
+Claude token, time, and cost figures are historical means; Codex used `codex-cli 0.160.0`,
+`gpt-6.1-sol`, and high reasoning effort. Codex + Mog processed **+49.2%**
+input tokens and took **+17.0%** wall time in this single pair.
+Its 11 recoverable CLI lookup failures are included. Codex's resumed-session
+token totals were differenced to avoid double counting; cached tokens are a subset
+of input tokens. No dollar estimate was substituted for unavailable billing data.
+
+These are within-client measurements with different models, sample sizes, and
+memory behavior. They do not establish a client ranking or a significant Codex
+effect. The seeded stale-notes experiment above remains Claude-only.
+See the [Codex write-up](docs/results/codex-sessions-2026-10-06.md) and
+[per-prompt metrics and checks](docs/results/codex-sessions-2026-10-06.json).
 
 ## Validation and remaining work
 

@@ -32,3 +32,11 @@ using headless Claude Code runs with hidden checks:
 Success was equal in every arm. Over the long sequence there was no measurable cost
 difference. Stale notes raised baseline cost by 59%, while Mogestrator with stale
 memories was 15% cheaper than baseline.
+
+## Codex agent-session A/B — 2026-10-06
+
+[`codex-sessions-2026-10-06.md`](codex-sessions-2026-10-06.md) records a
+25 min 33 s experiment with one baseline/Mogestrator pair, the ten-prompt,
+three-session sequence from Claude v2, and independent hidden acceptance checks.
+Mogestrator processed +49.2% input tokens; the one-pair result is preliminary.
+The root README compiles both clients' long-sequence results.
