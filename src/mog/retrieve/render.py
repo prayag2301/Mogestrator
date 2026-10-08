@@ -64,6 +64,8 @@ class SourceView:
         return True
 
     def state(self, node: Node) -> tuple[str, str | None]:
+        if node.state in (State.FRESH, State.STALE) and node.meta.get("anchor_moved_from"):
+            return "stale", "anchor moved or renamed; review memory wording before relying on it"
         if not node.anchor:
             return node.state.value, None
         source, symbols, reason = self.snapshot(node.anchor.path)

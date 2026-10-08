@@ -3,6 +3,59 @@ import pytest
 from mog.serve.service import RepositoryService
 
 
+@pytest.mark.parametrize("change", ["file", "symbol"])
+def test_moved_memory_warns_across_reads_reindex_and_restart(indexed, change):
+    root, store, _ = indexed
+    service = RepositoryService(root)
+    content = "Use src/util.py::helper for doubling."
+    memory = service.call("remember", kind="decision", content=content, anchor="helper")
+    service.call("pin", node_id=memory["id"], value=True)
+    path = root / "src/util.py"
+    if change == "file":
+        path.rename(root / "src/moved.py")
+    else:
+        path.write_text(path.read_text().replace("helper", "double"))
+    assert service.reindex().stale_marked == 1
+    # Repeated indexing and restarts must not silently validate the old wording.
+    service.reindex()
+    service = RepositoryService(root)
+    recalled = service.call("recall", node_id=memory["id"])
+    assert recalled["content"] == content
+    assert recalled["pinned"]
+    assert recalled["provenance"] == memory["provenance"]
+    assert recalled["state"] == "stale"
+    assert "review memory wording" in recalled["warning"]
+    assert store.get_node(memory["id"]).meta["anchor_moved_from"] == memory["anchor"]
+    found = service.call("why", query="doubling")["items"]
+    assert any(item["id"] == memory["id"] and item["state"] == "stale" for item in found)
+    assert service.call("verify")["drifted"] == 1
+    subject = "src/moved.py::helper" if change == "file" else "src/util.py::double"
+    replacement = service.call(
+        "remember", kind="decision", content="Reviewed doubling", anchor=subject
+    )
+    assert replacement["state"] == "fresh"
+    assert service.call("recall", node_id=memory["id"])["state"] == "stale"
+
+
+def test_empty_why_does_not_read_sources_and_still_validates(indexed, monkeypatch):
+    from mog.retrieve.render import SourceView
+
+    root, _, _ = indexed
+    service = RepositoryService(root)
+
+    def unexpected_read(*args):
+        pytest.fail("empty memory search must not read source files")
+
+    monkeypatch.setattr(SourceView, "snapshot", unexpected_read)
+    result = service.call("why", query="verify_token")
+    assert result["items"] == []
+    assert result["token_upper_bound"] <= result["budget_tokens"]
+    with pytest.raises(ValueError, match="query"):
+        service.call("why", query=" ")
+    with pytest.raises(ValueError, match="budget"):
+        service.call("why", query="verify_token", budget=1)
+
+
 def test_remember_why_recall_and_pin_persist_across_services(indexed):
     root, _, _ = indexed
     service = RepositoryService(root)

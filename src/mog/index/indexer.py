@@ -326,7 +326,7 @@ class Indexer:
         return self.store.upsert_edges(edges)
 
     def _mark_stale_facts(self) -> int:
-        """Flip episodic facts whose anchored span no longer matches.
+        """Mark episodic facts stale when their anchored span changed or moved.
 
         This is the whole point of anchoring: memory that can be wrong and
         knows it (ADR-0003). Stale facts are labelled, never deleted.
@@ -344,7 +344,7 @@ class Indexer:
 
         stale: list[str] = []
         for row in self.store.db.execute(
-            "SELECT id, anchor, state FROM nodes WHERE anchor IS NOT NULL "
+            "SELECT id, anchor, state, meta FROM nodes WHERE anchor IS NOT NULL "
             "AND kind NOT IN ('symbol','test','file','module') AND state='fresh'"
         ):
             import json as _json
@@ -353,6 +353,9 @@ class Indexer:
             key = (anchor.get("path"), anchor.get("symbol"))
             if not key[1]:
                 continue
-            if current.get(key) != anchor.get("span_hash"):
+            if (
+                current.get(key) != anchor.get("span_hash")
+                or _json.loads(row["meta"]).get("anchor_moved_from")
+            ):
                 stale.append(row["id"])
         return self.store.set_state(stale, State.STALE)

@@ -112,8 +112,14 @@ mog unpin deci_ID
 ```
 
 Memories survive re-indexing and process restarts. Anchored facts retain their
-original hashes, so editing a source marks them stale instead of silently
-rewriting history. Unanchored memories have no source drift check. `recall`
+original hashes on body edits, so editing a source marks them stale instead of
+silently rewriting history. Unique renames move the anchor but mark the memory
+stale with a review warning: its text may still name the old symbol or path.
+The original anchor is retained in metadata. After review, record a new memory
+against the current symbol; re-indexing never validates the old wording.
+Moves processed by older versions did not retain the original anchor and need
+manual memory review; this fix cannot identify them retroactively.
+Unanchored memories have no source drift check. `recall`
 returns the original recorded content. Pinning is persisted for ranking and
 future working-set management; automatic eviction, recall stubs, conflict
 resolution, and conversation capture are **not implemented**.
@@ -150,6 +156,14 @@ mog serve --mcp --transport http --port 8765 --repo /absolute/path/to/repo --wat
 
 HTTP binds only to loopback; remote authenticated/multi-user hosting is not part
 of this release.
+
+Use Mogestrator selectively. Search when relevant code is unknown, expand only
+when a snippet is insufficient, and use `why` when a prior decision or failure
+matters to the task. Retrieval checks the returned items' freshness already;
+reserve `verify` for explicit drift audits. There is no required session-start
+index/verify/why sequence. With `--watch`, indexing refreshes automatically.
+An empty memory lookup returns without reading source files or traversing the
+graph. Remember durable decisions, failures, and handoffs rather than each action.
 
 Tools: `search_context`, `expand`, `impact`, `neighbors`, `why`, `remember`,
 `recall`, `pin`, `unpin`, `verify`, `create_context`, `load_context`.
@@ -203,6 +217,8 @@ built so that trusting a wrong note gives silently wrong output.
   its session ritual made it 55% more expensive.
 - **Blind spot:** when a file moved, rename tracking re-anchored a memory and
   labelled it fresh, although its text still named the old path.
+  The current implementation marks moved memories stale for review; the benchmark
+  above predates that fix.
 
 Details: [v2 write-up](docs/results/agent-sessions-v2-2026-09-30.md) and the
 [v1 pilot](docs/results/agent-sessions-2026-09-30.md). The pilot used in-session

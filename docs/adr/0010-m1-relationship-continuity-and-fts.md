@@ -23,6 +23,11 @@ episodic anchors to the new path/name/span hash. A body edit, copy, or ambiguous
 match does not move a fact. Structural nodes remain rebuildable and may get new
 IDs; episodic node IDs and provenance stay intact.
 
+Follow-up (2026-10-08): moved memories retain their original anchor in metadata
+and become stale with a wording-review warning. A matching symbol body establishes
+identity continuity, not the truth of text that may name the old path or symbol.
+Re-indexing does not clear this warning; a reviewed fact can be recorded anew.
+
 Use contentless FTS5 in schema v3. The nodes table remains the sole stored copy
 of previews; FTS retains token postings and rowids. Migrate v1/v2 indexes in
 place, preserve episodic nodes, then VACUUM once to reclaim the old text copy.

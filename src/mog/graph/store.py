@@ -321,9 +321,9 @@ class Store:
         return cur.rowcount
 
     def move_anchored_facts(self, old: Anchor, new: Anchor) -> int:
-        """Follow an unambiguous symbol rename without changing a fact's origin."""
+        """Follow a rename, retaining the old anchor so memory wording needs review."""
         rows = self.db.execute(
-            "SELECT id, anchor FROM nodes WHERE path=? AND span_hash=? "
+            "SELECT id, anchor, meta FROM nodes WHERE path=? AND span_hash=? "
             "AND kind NOT IN ('file','symbol','test','module')",
             (old.path, old.span_hash),
         ).fetchall()
@@ -332,11 +332,13 @@ class Store:
             anchor = json.loads(row["anchor"])
             if anchor.get("symbol") != old.symbol:
                 continue
+            meta = json.loads(row["meta"])
+            meta.setdefault("anchor_moved_from", dict(anchor))
             anchor.update(path=new.path, symbol=new.symbol, span_hash=new.span_hash)
             anchor.pop("file_hash", None)
             self.db.execute(
-                "UPDATE nodes SET anchor=?, path=?, span_hash=? WHERE id=?",
-                (json.dumps(anchor), new.path, new.span_hash, row["id"]),
+                "UPDATE nodes SET anchor=?, path=?, span_hash=?, meta=? WHERE id=?",
+                (json.dumps(anchor), new.path, new.span_hash, json.dumps(meta), row["id"]),
             )
             moved += 1
         return moved

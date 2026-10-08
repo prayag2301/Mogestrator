@@ -69,7 +69,7 @@ def test_go_and_rust_local_import_edges(
     store.close()
 
 
-def test_unique_rename_moves_fact_anchor_and_keeps_it_fresh(tmp_path):
+def test_unique_rename_moves_fact_anchor_and_requires_review(tmp_path):
     source = tmp_path / "a.py"
     source.write_text("def before(x):\n    return x + 1\n")
     store = _store(tmp_path)
@@ -86,7 +86,8 @@ def test_unique_rename_moves_fact_anchor_and_keeps_it_fresh(tmp_path):
     moved = store.get_node(fact.id)
     assert moved.anchor.symbol == "after"
     assert moved.anchor.span_hash == store.find_by_qualname("after")[0].anchor.span_hash
-    assert moved.state is State.FRESH
+    assert moved.state is State.STALE
+    assert moved.meta["anchor_moved_from"]["symbol"] == "before"
     store.close()
 
 
@@ -108,7 +109,7 @@ def test_body_edit_is_not_mistaken_for_rename(tmp_path):
     store.close()
 
 
-def test_file_move_keeps_unique_symbol_fact_fresh(tmp_path):
+def test_file_move_keeps_unique_symbol_fact_but_requires_review(tmp_path):
     original = tmp_path / "old.py"
     original.write_text("def answer():\n    return 42\n")
     store = _store(tmp_path)
@@ -123,7 +124,7 @@ def test_file_move_keeps_unique_symbol_fact_fresh(tmp_path):
     original.rename(tmp_path / "new.py")
     Indexer(tmp_path, store).run()
     assert store.get_node(fact.id).anchor.path == "new.py"
-    assert store.get_node(fact.id).state is State.FRESH
+    assert store.get_node(fact.id).state is State.STALE
     store.close()
 
 

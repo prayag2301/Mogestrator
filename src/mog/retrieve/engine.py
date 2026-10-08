@@ -110,6 +110,10 @@ class Retriever:
             raise ValueError("max_hops must be between 0 and 4")
         if kind is not None and kind != "memory":
             kind = NodeKind(kind)
+        if kind == "memory" and not any(
+            self.store.find_nodes(kind=memory_kind, limit=1) for memory_kind in MEMORY_KINDS
+        ):
+            return pack([], budget, mode="fts+graph")
         terms = re.findall(r"[^\W_]+", re.sub(r"([a-z])([A-Z])", r"\1 \2", query), re.UNICODE)
         identifiers = re.findall(r"\w+", query, re.UNICODE)
         tokens = list(dict.fromkeys([*identifiers, *terms]))[:32]
