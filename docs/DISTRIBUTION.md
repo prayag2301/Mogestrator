@@ -1,6 +1,6 @@
 # Distribution & installation channels
 
-> Status: **0.1.1** is stable; **0.2.0a2** completes M1 and includes experimental retrieval/MCP. Other
+> Status: **0.1.2** is stable; **0.2.0a3** includes M1, memory freshness fixes, and experimental retrieval/MCP. Other
 > channels remain planned for **M6**.
 >
 > Principle: *adoption dies at the install step*. A developer must be able to
@@ -73,7 +73,7 @@ The old `v0.1.0` release points to placeholder code and failed with
 `v0.1.1` tag on the verified main commit. Do not move the old tag.
 
 After merge, create a GitHub release for the new version. Mark alpha versions
-such as `0.2.0a1` as prereleases; stable installs should continue to select 0.1.1. Watch the Release
+such as `0.2.0a3` as prereleases; stable installs should continue to select 0.1.2. Watch the Release
 workflow, then verify the version on PyPI and run `scripts/smoke.py` using a
 fresh environment installed from PyPI. A GitHub release alone does not prove
 that publishing succeeded. If OIDC fails, correct the matching publisher in

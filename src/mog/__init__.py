@@ -7,5 +7,5 @@ Experimental retrieval and MCP tools are available; M2 evaluation gates remain o
 Design docs: https://github.com/prayag2301/Mogestrator/tree/main/docs
 """
 
-__version__ = "0.2.0a2"
+__version__ = "0.2.0a3"
 __all__ = ["__version__"]

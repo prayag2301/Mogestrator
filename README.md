@@ -4,8 +4,8 @@ A local code knowledge graph for coding agents. Mogestrator indexes a repository
 retrieves scoped context, and detects when anchored code or remembered facts have
 changed. Code stays local; no account or API key is required.
 
-**Status:** `0.1.1` is the stable indexing release. `0.2.0a2` completes M1 and
-includes experimental retrieval and MCP integration. The broader M2 quality gate remains open: there
+**Status:** `0.1.2` is the stable indexing release. `0.2.0a3` includes M1 indexing,
+memory freshness fixes, and experimental retrieval and MCP integration. The broader M2 quality gate remains open: there
 is no evidence yet that this beats ripgrep or chunk RAG on real development tasks.
 
 ## Install and try
@@ -13,7 +13,7 @@ is no evidence yet that this beats ripgrep or chunk RAG on real development task
 Python 3.11+:
 
 ```bash
-pip install --pre "mogestrator[mcp]==0.2.0a2"
+pip install --pre "mogestrator[mcp]==0.2.0a3"
 mog init
 mog index
 mog search "verify_token" --explain
@@ -88,7 +88,7 @@ formatting are outside this budget.
 ### Optional local semantic search
 
 ```bash
-pip install --pre "mogestrator[embeddings]==0.2.0a2"
+pip install --pre "mogestrator[embeddings]==0.2.0a3"
 mog index
 mog embed                      # first run downloads BAAI/bge-small-en-v1.5
 mog search "validate a user's login credentials" --semantic
